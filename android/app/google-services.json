@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "659085098166",
+    "project_id": "patgolito-6f54e",
+    "storage_bucket": "patgolito-6f54e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:659085098166:android:03a0601f6689dcd54b3a17",
+        "android_client_info": {
+          "package_name": "com.example.client_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVWHjxEu6r-G40EvN1HQt6N_AoaUl6Unc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:659085098166:android:1f0ec9a7319550484b3a17",
+        "android_client_info": {
+          "package_name": "com.example.driver_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVWHjxEu6r-G40EvN1HQt6N_AoaUl6Unc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
