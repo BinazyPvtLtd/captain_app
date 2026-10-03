@@ -34,83 +34,68 @@ class VehicleDocumentsScreen
 // VIEW
 // =====================================================================
 
-class _VehicleDocumentsView
-    extends StatelessWidget {
+class _VehicleDocumentsView extends StatelessWidget {
   const _VehicleDocumentsView();
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return Scaffold(
-      backgroundColor:
-          AppColors.background,
+  Widget build(BuildContext context) {
+    final double screenHeight = MediaQuery.sizeOf(context).height;
+    final bool compact = screenHeight < 700;
 
-      bottomNavigationBar:
-          const _SubmitVehicleSection(),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
+
+      bottomNavigationBar: const _SubmitVehicleSection(),
 
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
-            // =====================================================
-            // HEADER
-            // =====================================================
-
             const _Header(),
 
             const Divider(
               height: 1,
+              thickness: 1,
+              color: AppColors.divider,
             ),
 
-            // =====================================================
-            // CONTENT
-            // =====================================================
-
             Expanded(
-              child:
-                  SingleChildScrollView(
-                physics:
-                    const BouncingScrollPhysics(),
-                padding:
-                    const EdgeInsets.fromLTRB(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenHorizontal,
+                  compact ? AppSpacing.lg : AppSpacing.xl,
                   AppSpacing.screenHorizontal,
                   AppSpacing.xl,
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.xxl,
                 ),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // =============================================
-                    // TITLE
-                    // =============================================
-
                     Text(
                       'Vehicle Documents',
-                      style:
-                          AppTextStyles
-                              .displaySmall,
+                      style: AppTextStyles.headingLarge.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
 
-                    AppSpacing.gapSM,
-
-                    // =============================================
-                    // SUBTITLE
-                    // =============================================
+                    AppSpacing.gapXS,
 
                     Text(
                       'Upload valid vehicle documents for verification.',
                       style:
-                          AppTextStyles
-                              .bodyLargeSecondary,
+                          AppTextStyles.bodyMediumSecondary.copyWith(
+                        height: 1.45,
+                      ),
                     ),
 
-                    AppSpacing.gapXXL,
-
-                    // =============================================
-                    // DOCUMENTS
-                    // =============================================
+                    SizedBox(
+                      height: compact
+                          ? AppSpacing.lg
+                          : AppSpacing.xl,
+                    ),
 
                     const _DocumentList(),
 
@@ -125,7 +110,6 @@ class _VehicleDocumentsView
     );
   }
 }
-
 // =====================================================================
 // HEADER
 // =====================================================================
@@ -134,26 +118,21 @@ class _Header extends StatelessWidget {
   const _Header();
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return SizedBox(
-      height: 72,
+      height: 50,
       child: Row(
         children: [
           SizedBox(
-            width: 64,
+            width: 56,
             child: IconButton(
               onPressed: () {
-                Navigator.of(context)
-                    .maybePop();
+                Navigator.of(context).maybePop();
               },
               icon: const Icon(
                 Icons.arrow_back_rounded,
-                size:
-                    AppSpacing.iconLG,
-                color:
-                    AppColors.textPrimary,
+                size: AppSpacing.iconMD,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -161,17 +140,16 @@ class _Header extends StatelessWidget {
           Expanded(
             child: Text(
               'Vehicle Documents',
-              textAlign:
-                  TextAlign.center,
-              style:
-                  AppTextStyles
-                      .headingLarge,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.headingMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
 
-          const SizedBox(
-            width: 64,
-          ),
+          const SizedBox(width: 56),
         ],
       ),
     );
@@ -230,8 +208,7 @@ class _DocumentList
 // DOCUMENT CARD
 // =====================================================================
 
-class _VehicleDocumentCard
-    extends StatelessWidget {
+class _VehicleDocumentCard extends StatelessWidget {
   final VehicleDocumentModel document;
 
   const _VehicleDocumentCard({
@@ -239,108 +216,160 @@ class _VehicleDocumentCard
   });
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    final viewModel = context
-        .read<
-            VehicleDocumentsViewModel>();
+  Widget build(BuildContext context) {
+    final viewModel =
+        context.read<VehicleDocumentsViewModel>();
 
     final bool uploading =
-        viewModel.isUploading(
-      document.id,
-    );
+        viewModel.isUploading(document.id);
 
     return AppCard(
-      padding:
-          const EdgeInsets.all(
-        AppSpacing.md,
-      ),
-      radius:
-          AppSpacing.radiusXL,
-      child: Row(
-        children: [
-          // =================================================
-          // ICON
-          // =================================================
+      padding: const EdgeInsets.all(AppSpacing.md),
+      radius: AppSpacing.radiusLG,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool narrow = constraints.maxWidth < 330;
 
-          Container(
-            width: 58,
-            height: 58,
-            decoration:
-                BoxDecoration(
-              color:
-                  AppColors
-                      .surfaceSecondary,
-              borderRadius:
-                  BorderRadius.circular(
-                AppSpacing.radiusLG,
-              ),
-            ),
-            child: Icon(
-              document.icon,
-              size:
-                  AppSpacing.iconLG,
-              color:
-                  AppColors.textPrimary,
-            ),
-          ),
-
-          AppSpacing.horizontalMD,
-
-          // =================================================
-          // TITLE + STATUS
-          // =================================================
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+          if (narrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  document.title,
-                  style:
-                      AppTextStyles
-                          .headingSmall,
+                Row(
+                  children: [
+                    _DocumentIcon(
+                      icon: document.icon,
+                    ),
+
+                    AppSpacing.horizontalMD,
+
+                    Expanded(
+                      child: _DocumentInfo(
+                        document: document,
+                      ),
+                    ),
+                  ],
                 ),
 
-                AppSpacing.gapXS,
+                AppSpacing.gapMD,
 
-                document.isUploaded
-                    ? const _UploadedStatus()
-                    : const _PendingStatus(),
+                SizedBox(
+                  width: double.infinity,
+                  child: document.isUploaded
+                      ? _ViewButton(
+                          document: document,
+                          fullWidth: true,
+                        )
+                      : _UploadButton(
+                          isLoading: uploading,
+                          fullWidth: true,
+                          onPressed: uploading
+                              ? null
+                              : () {
+                                  viewModel.uploadDocument(
+                                    context,
+                                    document,
+                                  );
+                                },
+                        ),
+                ),
               ],
-            ),
-          ),
+            );
+          }
 
-          AppSpacing.horizontalSM,
+          return Row(
+            children: [
+              _DocumentIcon(
+                icon: document.icon,
+              ),
 
-          // =================================================
-          // ACTION
-          // =================================================
+              AppSpacing.horizontalMD,
 
-          if (document.isUploaded)
-            _ViewButton(
-              document:
-                  document,
-            )
-          else
-            _UploadButton(
-              isLoading:
-                  uploading,
-              onPressed:
-                  uploading
-                      ? null
-                      : () {
-                          viewModel
-                              .uploadDocument(
-                            context,
-                            document,
-                          );
-                        },
-            ),
-        ],
+              Expanded(
+                child: _DocumentInfo(
+                  document: document,
+                ),
+              ),
+
+              AppSpacing.horizontalSM,
+
+              document.isUploaded
+                  ? _ViewButton(
+                      document: document,
+                    )
+                  : _UploadButton(
+                      isLoading: uploading,
+                      onPressed: uploading
+                          ? null
+                          : () {
+                              viewModel.uploadDocument(
+                                context,
+                                document,
+                              );
+                            },
+                    ),
+            ],
+          );
+        },
       ),
+    );
+  }
+}
+
+class _DocumentIcon extends StatelessWidget {
+  final IconData icon;
+
+  const _DocumentIcon({
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(
+          AppSpacing.radiusMD,
+        ),
+      ),
+      child: Icon(
+        icon,
+        size: AppSpacing.iconMD,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+}
+
+class _DocumentInfo extends StatelessWidget {
+  final VehicleDocumentModel document;
+
+  const _DocumentInfo({
+    required this.document,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          document.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.titleMedium.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
+        AppSpacing.gapXXS,
+
+        document.isUploaded
+            ? const _UploadedStatus()
+            : const _PendingStatus(),
+      ],
     );
   }
 }
@@ -467,97 +496,117 @@ class _UploadedStatus
 // UPLOAD BUTTON
 // =====================================================================
 
-class _UploadButton
-    extends StatelessWidget {
+class _UploadButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback? onPressed;
+  final bool fullWidth;
 
   const _UploadButton({
     required this.isLoading,
     required this.onPressed,
+    this.fullWidth = false,
   });
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return SizedBox(
-      width: 120,
-      height: 48,
-      child:
-          ElevatedButton(
-        onPressed:
-            onPressed,
-            style: ElevatedButton.styleFrom(
+      width: fullWidth ? double.infinity : 104,
+      height: 40,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor:
+              AppColors.primary.withValues(alpha: 0.55),
+          disabledForegroundColor: AppColors.white,
+
+          elevation: 0,
+
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
           ),
+
+          // Same rounded style as Login Screen
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              AppSpacing.xxl,
+            ),
+          ),
         ),
-        child:
-            isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child:
-                        CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color:
-                          AppColors.white,
-                    ),
-                  )
-                : const Row(
-                  mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .center,
-                    children: [
-                      Icon(
-                        Icons
-                            .upload_outlined,
-                        size:
-                            AppSpacing.iconSM,
-                      ),
-
-                      SizedBox(
-                        width:
-                            AppSpacing.xs,
-                      ),
-
-                      Text(
-                        'Upload',
-                      ),
-                    ],
+        child: isLoading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.white,
+                ),
+              )
+            : const Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.upload_outlined,
+                    size: AppSpacing.iconSM,
                   ),
+                  SizedBox(
+                    width: AppSpacing.xs,
+                  ),
+                  Text(
+                    'Upload',
+                    style: AppTextStyles.primaryButton,
+                  ),
+                ],
+              ),
       ),
     );
   }
 }
-
 // =====================================================================
 // VIEW BUTTON
 // =====================================================================
 
 class _ViewButton extends StatelessWidget {
   final VehicleDocumentModel document;
+  final bool fullWidth;
 
   const _ViewButton({
     required this.document,
+    this.fullWidth = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 100,
-      height: 48,
+      width: fullWidth ? double.infinity : 88,
+      height: 44,
       child: OutlinedButton(
         onPressed: () {
-          _showDocumentSheet(
-            context,
-          );
+          _showDocumentSheet(context);
         },
         style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.background,
+          foregroundColor: AppColors.primary,
+
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
+            horizontal: AppSpacing.sm,
+          ),
+
+         
+          side: BorderSide(
+            color: AppColors.primary.withValues(
+              alpha: 0.35,
+            ),
+            width: 1.3,
+          ),
+
+          
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              AppSpacing.xxl,
+            ),
           ),
         ),
         child: Text(
@@ -578,6 +627,7 @@ class _ViewButton extends StatelessWidget {
       context: context,
       backgroundColor: AppColors.background,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
@@ -591,8 +641,7 @@ class _ViewButton extends StatelessWidget {
               children: [
                 Text(
                   document.title,
-                  style:
-                      AppTextStyles.headingMedium,
+                  style: AppTextStyles.headingMedium,
                 ),
 
                 AppSpacing.gapSM,
@@ -600,8 +649,8 @@ class _ViewButton extends StatelessWidget {
                 Text(
                   document.fileName ??
                       'Uploaded document',
-                  style: AppTextStyles
-                      .bodyMediumSecondary,
+                  style:
+                      AppTextStyles.bodyMediumSecondary,
                 ),
 
                 AppSpacing.gapXL,
@@ -632,67 +681,69 @@ class _ViewButton extends StatelessWidget {
 // SUBMIT VEHICLE
 // =====================================================================
 
-class _SubmitVehicleSection
-    extends StatelessWidget {
+class _SubmitVehicleSection extends StatelessWidget {
   const _SubmitVehicleSection();
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding:
-            const EdgeInsets.fromLTRB(
-          AppSpacing.screenHorizontal,
-          AppSpacing.md,
-          AppSpacing.screenHorizontal,
-          AppSpacing.md,
-        ),
-        decoration:
-            const BoxDecoration(
-          color:
-              AppColors.background,
-          border:
-              Border(
-            top:
-                BorderSide(
-              color:
-                  AppColors.divider,
-            ),
+  Widget build(BuildContext context) {
+    final double keyboardInset =
+        MediaQuery.viewInsetsOf(context).bottom;
+
+    final double systemBottomInset =
+        MediaQuery.viewPaddingOf(context).bottom;
+
+    // Normally this screen has no text input,
+    // but keeping it safe for future changes.
+    final bool keyboardOpen = keyboardInset > 0;
+
+    if (keyboardOpen) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.divider,
           ),
         ),
-        child: Consumer<
-            VehicleDocumentsViewModel>(
-          builder: (
-            context,
-            viewModel,
-            child,
-          ) {
-            return AppPrimaryButton(
-              title:
-                  'Submit Vehicle',
-              isLoading:
-                  viewModel.isSubmitting,
-              onPressed: () {
-                viewModel
-                    .submitVehicle(
-                  context,
-                 onSuccess: () {
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(
-      builder: (_) =>
-          const VerificationStatusScreen(),
-    ),
-    (route) => false,
-  );
-},
-                );
-              },
-            );
-          },
-        ),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.sm,
+        AppSpacing.screenHorizontal,
+        AppSpacing.sm + systemBottomInset,
+      ),
+      child: Consumer<VehicleDocumentsViewModel>(
+        builder: (
+          context,
+          viewModel,
+          child,
+        ) {
+          return AppPrimaryButton(
+            title: 'Submit Vehicle',
+            isLoading: viewModel.isSubmitting,
+            onPressed: () {
+              FocusManager.instance.primaryFocus
+                  ?.unfocus();
+
+              viewModel.submitVehicle(
+                context,
+                onSuccess: () {
+                  Navigator.of(context)
+                      .pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const VerificationStatusView(),
+                    ),
+                    (route) => false,
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

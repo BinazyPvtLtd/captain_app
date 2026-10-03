@@ -34,134 +34,103 @@ class CompleteProfileScreen
 // VIEW
 // =====================================================================
 
-class _CompleteProfileView
-    extends StatelessWidget {
+class _CompleteProfileView extends StatelessWidget {
   const _CompleteProfileView();
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+
+    final double screenHeight = mediaQuery.size.height;
+    final bool isCompactHeight = screenHeight < 700;
+
     return Scaffold(
-      backgroundColor:
-          AppColors.background,
+      backgroundColor: AppColors.background,
 
-      // =========================================================
-      // FIXED CONTINUE BUTTON
-      // =========================================================
+      
+      resizeToAvoidBottomInset: true,
 
-      bottomNavigationBar:
-          const _BottomContinueButton(),
+      bottomNavigationBar: const _BottomContinueButton(),
 
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
-            // =====================================================
-            // HEADER
-            // =====================================================
-
             const _ProfileHeader(),
 
             const Divider(
               height: 1,
+              thickness: 1,
+              color: AppColors.divider,
             ),
 
-            // =====================================================
-            // FORM
-            // =====================================================
-
             Expanded(
-              child:
-                  SingleChildScrollView(
-                physics:
-                    const BouncingScrollPhysics(),
-                padding:
-                    const EdgeInsets.fromLTRB(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
                   AppSpacing.screenHorizontal,
-                  AppSpacing.xxl,
+                  isCompactHeight
+                      ? AppSpacing.lg
+                      : AppSpacing.md,
                   AppSpacing.screenHorizontal,
-                  AppSpacing.xxxl,
+                  AppSpacing.md,
                 ),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    // =============================================
-                    // TITLE
-                    // =============================================
-
                     Text(
                       'Complete Your Profile',
-                      style:
-                          AppTextStyles
-                              .displaySmall,
+                      style: AppTextStyles.headingLarge,
                     ),
 
                     AppSpacing.gapSM,
 
-                    // =============================================
-                    // SUBTITLE
-                    // =============================================
-
                     Text(
                       'Please provide your details to verify your account.',
                       style:
-                          AppTextStyles
-                              .bodyLargeSecondary,
+                          AppTextStyles.bodyLargeSecondary,
                     ),
 
-                    AppSpacing.gapXXXL,
-
-                    // =============================================
-                    // PHOTO
-                    // =============================================
-
-                    const Center(
-                      child:
-                          _ProfilePhotoPicker(),
+                    SizedBox(
+                      height: isCompactHeight
+                          ? AppSpacing.md
+                          : AppSpacing.lg,
                     ),
 
-                    AppSpacing.gapXXXL,
+                    Center(
+                      child: _ProfilePhotoPicker(
+                        compact: isCompactHeight,
+                      ),
+                    ),
 
-                    // =============================================
-                    // FULL NAME
-                    // =============================================
+                    SizedBox(
+                      height: isCompactHeight
+                          ? AppSpacing.md
+                          : AppSpacing.lg,
+                    ),
 
                     const _FullNameField(),
 
-                    AppSpacing.gapXL,
-
-                    // =============================================
-                    // DATE OF BIRTH
-                    // =============================================
+                    AppSpacing.gapMD,
 
                     const _DateOfBirthField(),
 
-                    AppSpacing.gapXL,
-
-                    // =============================================
-                    // GENDER
-                    // =============================================
+                    AppSpacing.gapMD,
 
                     const _GenderField(),
 
-                    AppSpacing.gapXL,
-
-                    // =============================================
-                    // EMAIL
-                    // =============================================
+                    AppSpacing.gapMD,
 
                     const _EmailField(),
 
-                    AppSpacing.gapXL,
-
-                    // =============================================
-                    // CITY
-                    // =============================================
+                    AppSpacing.gapMD,
 
                     const _CityField(),
 
-                    AppSpacing.gapXXL,
+                    AppSpacing.gapMD,
                   ],
                 ),
               ),
@@ -176,56 +145,46 @@ class _CompleteProfileView
 // =====================================================================
 // HEADER
 // =====================================================================
+
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 72,
+      height: 52,
       child: Row(
         children: [
-          // =====================================================
-          // BACK BUTTON
-          // =====================================================
-
           SizedBox(
-            width: 64,
+            width: 56,
             child: IconButton(
               onPressed: () {
                 Navigator.of(context).maybePop();
               },
               icon: const Icon(
                 Icons.arrow_back_rounded,
-                size: AppSpacing.iconLG,
+                size: AppSpacing.iconMD,
                 color: AppColors.textPrimary,
               ),
             ),
           ),
 
-          // =====================================================
-          // STEP TEXT
-          // =====================================================
-
           Expanded(
             child: Text(
-              'STEP 1 OF 3',
+              'STEP 1 OF 4',
               textAlign: TextAlign.center,
               maxLines: 1,
-              style: AppTextStyles.labelLarge.copyWith(
+              style:
+                  AppTextStyles.labelMedium.copyWith(
                 color: AppColors.textSecondary,
-                letterSpacing: 1.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.4,
               ),
             ),
           ),
 
-          // =====================================================
-          // RIGHT SPACER
-          // Same width as back button to keep title centered
-          // =====================================================
-
           const SizedBox(
-            width: 64,
+            width: 56,
           ),
         ],
       ),
@@ -237,56 +196,52 @@ class _ProfileHeader extends StatelessWidget {
 // PROFILE PHOTO
 // =====================================================================
 
-class _ProfilePhotoPicker
-    extends StatelessWidget {
-  const _ProfilePhotoPicker();
+class _ProfilePhotoPicker extends StatelessWidget {
+  final bool compact;
+
+  const _ProfilePhotoPicker({
+    this.compact = false,
+  });
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return Consumer<
-        CompleteProfileViewModel>(
+  Widget build(BuildContext context) {
+    final double size = compact ? 80 : 92;
+
+    return Consumer<CompleteProfileViewModel>(
       builder: (
         context,
         viewModel,
         child,
       ) {
         return GestureDetector(
-          onTap:
-              viewModel.pickProfileImage,
-          behavior:
-              HitTestBehavior.opaque,
+          onTap: viewModel.pickProfileImage,
+          behavior: HitTestBehavior.opaque,
           child: Container(
-            width: 132,
-            height: 132,
+            width: size,
+            height: size,
             decoration: BoxDecoration(
-              color:
-                  AppColors.surfaceSecondary,
-              borderRadius:
-                  BorderRadius.circular(
+              color: AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(
                 AppSpacing.radiusLG,
               ),
               border: Border.all(
-                color:
-                    AppColors.borderDark,
-                width: 1.5,
+                color: AppColors.borderDark,
+                width: 1,
               ),
             ),
-            child:
-                viewModel.profileImage !=
-                        null
-                    ? _SelectedImage(
-                        image: viewModel
-                            .profileImage!,
-                      )
-                    : const _EmptyPhoto(),
+            child: viewModel.profileImage != null
+                ? _SelectedImage(
+                    image: viewModel.profileImage!,
+                  )
+                : const _EmptyPhoto(),
           ),
         );
       },
     );
   }
 }
+
+
 
 // =====================================================================
 // EMPTY PHOTO
@@ -311,7 +266,7 @@ class _EmptyPhoto
               AppColors.textSecondary,
         ),
 
-        AppSpacing.gapMD,
+        AppSpacing.gapXXS,
 
         Text(
           'Add Photo',
@@ -408,6 +363,7 @@ class _FullNameField
           TextInputAction.next,
       keyboardType:
           TextInputType.name,
+          textCapitalization: TextCapitalization.words,
     );
   }
 }
@@ -592,37 +548,29 @@ class _CityField
 // BOTTOM CONTINUE
 // =====================================================================
 
-class _BottomContinueButton
-    extends StatelessWidget {
+class _BottomContinueButton extends StatelessWidget {
   const _BottomContinueButton();
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return SafeArea(
       top: false,
       child: Container(
-        padding:
-            const EdgeInsets.fromLTRB(
+        padding: const EdgeInsets.fromLTRB(
           AppSpacing.screenHorizontal,
-          AppSpacing.md,
+          AppSpacing.sm,
           AppSpacing.screenHorizontal,
-          AppSpacing.md,
+          AppSpacing.sm,
         ),
-        decoration:
-            const BoxDecoration(
-          color:
-              AppColors.background,
+        decoration: const BoxDecoration(
+          color: AppColors.background,
           border: Border(
             top: BorderSide(
-              color:
-                  AppColors.divider,
+              color: AppColors.divider,
             ),
           ),
         ),
-        child: Consumer<
-            CompleteProfileViewModel>(
+        child: Consumer<CompleteProfileViewModel>(
           builder: (
             context,
             viewModel,
@@ -630,18 +578,18 @@ class _BottomContinueButton
           ) {
             return AppPrimaryButton(
               title: 'Continue',
-              isLoading:
-                  viewModel.isLoading,
+              isLoading: viewModel.isLoading,
               onPressed: () {
                 viewModel.continueProfile(
                   context,
                   onSuccess: () {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => const KycIntroScreen(),
-    ),
-  );
-},
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const KycIntroScreen(),
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -651,3 +599,4 @@ class _BottomContinueButton
     );
   }
 }
+

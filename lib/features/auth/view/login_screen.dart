@@ -27,134 +27,145 @@ class _LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: _horizontalPadding(size.width),
+            final double height = constraints.maxHeight;
+            final double width = constraints.maxWidth;
+
+            // Real device responsive breakpoints
+            final bool compactHeight = height < 700;
+            final bool mediumHeight =
+                height >= 700 && height < 820;
+
+            final double horizontalPadding =
+    width < 360 ? 16 : AppSpacing.screenHorizontal;
+
+
+            final double logoHeight = compactHeight
+    ? 82
+    : mediumHeight
+        ? 92
+        : 104;
+
+final double truckHeight = compactHeight
+    ? 165
+    : mediumHeight
+        ? 190
+        : 210;
+            final double topGap = compactHeight
+    ? 8
+    : mediumHeight
+        ? 12
+        : 16;
+
+final double sectionGap = compactHeight
+    ? 10
+    : mediumHeight
+        ? 12
+        : 16;
+
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+              ),
+              child: Column(
+                children: [
+                  SizedBox(height: topGap),
+
+                  // ============================
+                  // LOGO
+                  // ============================
+
+                  SizedBox(
+                    height: logoHeight,
+                    width: double.infinity,
+                    child: Image.asset(
+                      AppAssets.patgolitoLogo1,
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                  child: Column(
-                    children: [
-                      // =====================================================
-                      // TOP SPACE
-                      // =====================================================
 
-                      SizedBox(
-                        height: _topSpacing(size.height),
-                      ),
-
-                      // =====================================================
-                      // APP ICON
-                      // =====================================================
-
-                      _buildAppIcon(),
-
-                      // =====================================================
-                      // TITLE
-                      // =====================================================
-
-                      AppSpacing.gapXXS,
-
-                      Text(
-                        'Move goods with ease',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.loginTitle,
-                      ),
-
-                      // =====================================================
-                      // SUBTITLE
-                      // =====================================================
-
-                      SizedBox(
-                        height: AppSpacing.sm,
-                      ),
-
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: 390,
-                        ),
-                        child: Text(
-                          'Fast, reliable transportation at your fingertips.',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.loginSubtitle,
-                        ),
-                      ),
-
-                      // =====================================================
-                      // TRUCK
-                      // =====================================================
-                      const SizedBox(
-  height: AppSpacing.md, // 12
-),
-
-
-// _buildTruckImage(
-//   width: size.width,
-//   height: size.height,
-// ),
-
-AnimatedDeliveryScene(
-  height: size.height < 700
-      ? 210
-      : size.height < 850
-          ? 250
-          : 280,
-),
-                     
-
-                      const SizedBox(
-  height: AppSpacing.md, // 12
-),
-
-                      const _PhoneInput(),
-
-                      // =====================================================
-                      // CONTINUE BUTTON
-                      // =====================================================
-
-                      SizedBox(
-                        height: AppSpacing.xl,
-                      ),
-
-                      const _ContinueButton(),
-
-                      // =====================================================
-                      // SIGN UP
-                      // =====================================================
-
-                      SizedBox(
-                        height: AppSpacing.xxl,
-                      ),
-
-                     // _buildSignup(context),
-
-                      // =====================================================
-                      // TERMS
-                      // =====================================================
-
-                      SizedBox(
-                        height: AppSpacing.xxl,
-                      ),
-
-                      _buildTerms(),
-
-                      SizedBox(
-                        height: AppSpacing.xl,
-                      ),
-                    ],
+                  SizedBox(
+                    height: compactHeight ? 4 : 8,
                   ),
-                ),
+
+                  // ============================
+                  // TITLE
+                  // ============================
+
+                  Text(
+  'Move goods with ease',
+  textAlign: TextAlign.center,
+  maxLines: 2,
+  overflow: TextOverflow.visible,
+  style: AppTextStyles.loginTitle,
+),
+
+                  SizedBox(
+                    height: compactHeight ? 6 : 10,
+                  ),
+
+                  // ============================
+                  // SUBTITLE
+                  // ============================
+
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: 390,
+                    ),
+                    child: Text(
+                      'Fast, reliable transportation at your fingertips.',
+                      textAlign: TextAlign.center,
+                      style:
+                          AppTextStyles.loginSubtitle,
+                    ),
+                  ),
+
+                  SizedBox(height: sectionGap),
+
+                  // ============================
+                  // TRUCK
+                  // ============================
+
+                  AnimatedDeliveryScene(
+                    height: truckHeight,
+                  ),
+
+                  SizedBox(height: sectionGap),
+
+                  // ============================
+                  // PHONE
+                  // ============================
+
+                  const _PhoneInput(),
+
+                  SizedBox(
+                    height: compactHeight ? 12 : 18,
+                  ),
+
+                  // ============================
+                  // CONTINUE
+                  // ============================
+
+                  const _ContinueButton(),
+
+                  // Push terms towards bottom
+                  const Spacer(),
+
+                  // ============================
+                  // TERMS
+                  // ============================
+
+                  _buildTerms(),
+
+                  SizedBox(
+                    height: compactHeight ? 8 : 12,
+                  ),
+                ],
               ),
             );
           },
@@ -162,169 +173,6 @@ AnimatedDeliveryScene(
       ),
     );
   }
-
-  // ===================================================================
-  // RESPONSIVE HORIZONTAL PADDING
-  // ===================================================================
-
-  double _horizontalPadding(double width) {
-    if (width < 360) {
-      return AppSpacing.xl;
-    }
-
-    if (width < 600) {
-      return AppSpacing.xxxl + AppSpacing.xs;
-    }
-
-    return AppSpacing.huge;
-  }
-
-  // ===================================================================
-  // TOP SPACING
-  // ===================================================================
-
-  double _topSpacing(double height) {
-    if (height < 700) {
-      return AppSpacing.lg;
-    }
-
-    if (height < 850) {
-      return AppSpacing.xl;
-    }
-
-    return AppSpacing.xxxl;
-  }
-
-  // ===================================================================
-  // TRUCK TOP SPACING
-  // ===================================================================
-
-  double _truckTopSpacing(double height) {
-    if (height < 700) {
-      return AppSpacing.xxl;
-    }
-
-    if (height < 850) {
-      return AppSpacing.xxxl + AppSpacing.xs;
-    }
-
-    return AppSpacing.huge + AppSpacing.sm;
-  }
-
-  // ===================================================================
-  // FORM TOP SPACING
-  // ===================================================================
-
-  double _formTopSpacing(double height) {
-    if (height < 700) {
-      return AppSpacing.lg;
-    }
-
-    if (height < 850) {
-      return AppSpacing.xxxl;
-    }
-
-    return AppSpacing.huge;
-  }
-
-  // ===================================================================
-  // APP ICON
-  // ===================================================================
-// Widget _buildAppIcon() {
-//   return Container(
-//     width: 130,
-//     height: 130,
-//     decoration: BoxDecoration(
-//       color: AppColors.white,
-//       borderRadius: BorderRadius.circular(24),
-//       boxShadow: const [
-//         BoxShadow(
-//           color: Color(0x18000000),
-//           blurRadius: 16,
-//           offset: Offset(0, 6),
-//         ),
-//       ],
-//     ),
-//     child: ClipRRect(
-//       borderRadius: BorderRadius.circular(24),
-//       child: Padding(
-//         padding: const EdgeInsets.all(8),
-//         child: Image.asset(
-//           AppAssets.patgolitoLogo1,
-//           width: double.infinity,
-//           height: double.infinity,
-//           fit: BoxFit.contain,
-//           alignment: Alignment.center,
-//         ),
-//       ),
-//     ),
-//   );
-// }
-
-Widget _buildAppIcon() {
-  return Image.asset(
-    AppAssets.patgolitoLogo1,
-    width: 230,
-    height: 170,
-    fit: BoxFit.contain,
-  );
-}
-  // ===================================================================
-  // TRUCK IMAGE
-  // ===================================================================
-
-  // Widget _buildTruckImage({
-  //   required double width,
-  //   required double height,
-  // }) {
-  //   final double imageWidth = width < 380
-  //       ? width * 0.78
-  //       : width * 0.82;
-
-  //   final double imageHeight = height < 700
-  //       ? 210
-  //       : height < 850
-  //           ? 260
-  //           : 300;
-
-  //   return SizedBox(
-  //     width: imageWidth,
-  //     height: imageHeight,
-  //     child: Image.asset(
-  //       AppAssets.loginTruck,
-  //       fit: BoxFit.contain,
-  //     ),
-  //   );
-  // }
-
-  // ===================================================================
-  // SIGN UP
-  // ===================================================================
-
-  // Widget _buildSignup(BuildContext context) {
-  //   return Wrap(
-  //     alignment: WrapAlignment.center,
-  //     children: [
-  //       Text(
-  //         'New to Patgolito? ',
-  //         style: AppTextStyles.signupText,
-  //       ),
-  //       GestureDetector(
-  //         onTap: () {
-  //           // TODO: Navigate to signup screen.
-  //         },
-  //         child: Text(
-  //           'Sign up',
-  //           style: AppTextStyles.signupAction,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // ===================================================================
-  // TERMS
-  // ===================================================================
 
   Widget _buildTerms() {
     return ConstrainedBox(
@@ -337,18 +185,18 @@ Widget _buildAppIcon() {
           style: AppTextStyles.termsText,
           children: [
             const TextSpan(
-              text: 'By continuing, you agree to Patgolito\'s ',
+              text:
+                  'By continuing, you agree to Patgolito\'s ',
             ),
             TextSpan(
-              text: 'Terms &',
-              style: AppTextStyles.termsAction,
-            ),
-            const TextSpan(
-              text: '\n',
+              text: 'Terms & ',
+              style:
+                  AppTextStyles.termsAction,
             ),
             TextSpan(
               text: 'Privacy Policy.',
-              style: AppTextStyles.termsAction,
+              style:
+                  AppTextStyles.termsAction,
             ),
           ],
         ),
@@ -357,101 +205,6 @@ Widget _buildAppIcon() {
   }
 }
 
-// =======================================================================
-// PHONE INPUT
-// =======================================================================
-
-// class _PhoneInput extends StatelessWidget {
-//   const _PhoneInput();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final LoginViewModel viewModel =
-//         context.read<LoginViewModel>();
-
-//     return Container(
-//       height: 64,
-//       decoration: BoxDecoration(
-//         color: AppColors.white,
-//         borderRadius: BorderRadius.circular(
-//   AppSpacing.radiusCircular,
-// ),
-//         border: Border.all(
-//           color: AppColors.primary.withValues(
-//             alpha: 0.35,
-//           ),
-//           width: 1.3,
-//         ),
-//       ),
-//       child: Row(
-//         children: [
-//           // ===========================================================
-//           // COUNTRY CODE
-//           // ===========================================================
-
-//           Padding(
-//             padding: const EdgeInsets.only(
-//               left: AppSpacing.lg,
-//               right: AppSpacing.md,
-//             ),
-//             child: Row(
-//               children: [
-//                 Text(
-//                   '+91',
-//                   style: AppTextStyles.countryCode,
-//                 ),
-
-//                 const SizedBox(
-//                   width: AppSpacing.sm,
-//                 ),
-
-//                 Icon(
-//                   Icons.keyboard_arrow_down_rounded,
-//                   size: 24,
-//                   color: AppColors.textPrimary,
-//                 ),
-//               ],
-//             ),
-//           ),
-
-//           // ===========================================================
-//           // DIVIDER
-//           // ===========================================================
-
-//           Container(
-//             width: 1,
-//             height: 34,
-//             color: AppColors.primary.withValues(
-//               alpha: 0.25,
-//             ),
-//           ),
-
-//           // ===========================================================
-//           // PHONE NUMBER
-//           // ===========================================================
-
-//           Expanded(
-//             child: TextField(
-//               controller: viewModel.phoneController,
-//               keyboardType: TextInputType.phone,
-//               maxLength: 10,
-//               onChanged: viewModel.onPhoneChanged,
-//               style: AppTextStyles.phoneInput,
-//               decoration: const InputDecoration(
-//                 counterText: '',
-//                 hintText: '10-digit number',
-//                 border: InputBorder.none,
-//                 contentPadding: EdgeInsets.symmetric(
-//                   horizontal: AppSpacing.lg,
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 
 class _PhoneInput extends StatelessWidget {
   const _PhoneInput();
@@ -464,7 +217,7 @@ class _PhoneInput extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(32),
       child: Container(
-        height: 64,
+        height: AppSpacing.inputHeight,
         decoration: BoxDecoration(
           color: AppColors.white,
 
@@ -485,9 +238,9 @@ class _PhoneInput extends StatelessWidget {
 
             Padding(
               padding: const EdgeInsets.only(
-                left: AppSpacing.xl,
-                right: AppSpacing.md,
-              ),
+  left: AppSpacing.lg,
+  right: AppSpacing.sm,
+),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -561,12 +314,10 @@ class _PhoneInput extends StatelessWidget {
 
                   isDense: true,
 
-                  contentPadding:
-                      EdgeInsets.symmetric(
-                    horizontal:
-                        AppSpacing.lg,
-                    vertical: 20,
-                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+  horizontal: AppSpacing.md,
+  vertical: 0,
+),
                 ),
               ),
             ),
@@ -599,7 +350,7 @@ class _ContinueButton extends StatelessWidget {
       ) {
         return SizedBox(
           width: double.infinity,
-          height: 64,
+          height: AppSpacing.buttonHeight,
           child: ElevatedButton(
             onPressed: viewModel.isLoading
                 ? null
@@ -646,9 +397,9 @@ class _ContinueButton extends StatelessWidget {
                       ),
 
                       const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 28,
-                      ),
+  Icons.arrow_forward_rounded,
+  size: AppSpacing.iconMD,
+),
                     ],
                   ),
           ),

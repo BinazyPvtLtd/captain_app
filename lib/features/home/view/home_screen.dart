@@ -15,9 +15,7 @@ import '../widgets/home_stats_card.dart';
 import '../widgets/recent_trip_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({
-    super.key,
-  });
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +36,7 @@ class _HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          AppColors.background,
+      backgroundColor: AppColors.background,
 
       body: SafeArea(
         child: Column(
@@ -47,141 +44,89 @@ class _HomeView extends StatelessWidget {
             // =====================================================
             // HEADER
             // =====================================================
-
             const _HomeHeader(),
 
-            const Divider(
-              height: 1,
-            ),
+            const Divider(height: 1),
 
             // =====================================================
             // CONTENT
             // =====================================================
-
             Expanded(
-              child:
-                  SingleChildScrollView(
-                physics:
-                    const BouncingScrollPhysics(),
-                padding:
-                    const EdgeInsets.fromLTRB(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.lg,
                   AppSpacing.screenHorizontal,
                   AppSpacing.xl,
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.xxl,
                 ),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // =============================================
-                    // GREETING
-                    // =============================================
-
                     const _GreetingSection(),
 
-                    AppSpacing.gapXXL,
+                    AppSpacing.gapLG,
 
-                    // =============================================
-                    // STATUS
-                    // =============================================
+                    DriverStatusCard(
+                      onBookingFound: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            fullscreenDialog: true,
+                            builder: (_) => const DeliveryRequestScreen(
+                              request: DeliveryRequestModel(
+                                id: 'booking_001',
+                                pickup: 'Gomti Nagar',
+                                drop: 'Indira Nagar',
+                                pickupDistance: '2.1 km away',
+                                tripDistance: '9.4 km',
+                                estimatedTime: '32 min',
+                                earning: '₹240',
+                                goodsType: 'Furniture (2 Items)',
+                                vehicleRequired: 'Mini Truck',
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
 
-                    // const DriverStatusCard(),
-
-                   DriverStatusCard(
-  onBookingFound: () {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) =>
-            const DeliveryRequestScreen(
-          request:
-              DeliveryRequestModel(
-            id: 'booking_001',
-
-            pickup:
-                'Gomti Nagar',
-
-            drop:
-                'Indira Nagar',
-
-            pickupDistance:
-                '2.1 km away',
-
-            tripDistance:
-                '9.4 km',
-
-            estimatedTime:
-                '32 min',
-
-            earning:
-                '₹240',
-
-            goodsType:
-                'Furniture (2 Items)',
-
-            vehicleRequired:
-                'Mini Truck',
-          ),
-        ),
-      ),
-    );
-  },
-),
-
-                    
-
-                    AppSpacing.gapXXL,
-
-                    // =============================================
-                    // TODAY
-                    // =============================================
+                    AppSpacing.gapXL,
 
                     Text(
                       'TODAY',
-                      style:
-                          AppTextStyles.labelLarge
-                              .copyWith(
-                        letterSpacing: 1.3,
+                      style: AppTextStyles.labelMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.0,
                       ),
                     ),
 
-                    AppSpacing.gapMD,
+                    AppSpacing.gapSM,
 
-                    const Divider(
-                      height: 1,
-                    ),
+                    const Divider(height: 1),
 
                     AppSpacing.gapMD,
 
                     const _StatsGrid(),
 
-                    AppSpacing.gapXXL,
-
-                    // =============================================
-                    // RECENT TRIP
-                    // =============================================
+                    AppSpacing.gapXL,
 
                     Text(
                       'RECENT TRIP',
-                      style:
-                          AppTextStyles.labelLarge
-                              .copyWith(
-                        letterSpacing: 1.3,
+                      style: AppTextStyles.labelMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.0,
                       ),
                     ),
 
-                    AppSpacing.gapMD,
+                    AppSpacing.gapSM,
 
-                    const Divider(
-                      height: 1,
-                    ),
+                    const Divider(height: 1),
 
                     AppSpacing.gapMD,
 
                     const _RecentTripSection(),
 
-                    AppSpacing.gapXL,
+                    AppSpacing.gapLG,
                   ],
                 ),
               ),
@@ -203,117 +148,80 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 72,
+      height: 60,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal:
-              AppSpacing.screenHorizontal,
+          horizontal: AppSpacing.screenHorizontal,
         ),
         child: Row(
           children: [
-            // =================================================
-            // MENU
-            // =================================================
-
             IconButton(
+              visualDensity: VisualDensity.compact,
               onPressed: () {
-                context
-                    .read<HomeViewModel>()
-                    .openMenu(
+                context.read<HomeViewModel>().openMenu(
                   onPressed: () {
-                    debugPrint(
-                      'Open drawer',
-                    );
+                    debugPrint('Open drawer');
                   },
                 );
               },
               icon: const Icon(
                 Icons.menu_rounded,
-                size: AppSpacing.iconLG,
-                color:
-                    AppColors.textPrimary,
+                size: AppSpacing.iconMD,
+                color: AppColors.textPrimary,
               ),
             ),
 
             AppSpacing.horizontalXXS,
 
-            // =================================================
-            // LOGO
-            // =================================================
-
             Image.asset(
               AppAssets.patgolitoLogo1,
-              width: 110,
-              height: 70,
+              width: 96,
+              height: 52,
               fit: BoxFit.contain,
             ),
 
             const Spacer(),
 
-            // =================================================
-            // NOTIFICATION
-            // =================================================
-
             IconButton(
+              visualDensity: VisualDensity.compact,
               onPressed: () {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: 'Notifications',
-    barrierColor: Colors.black.withValues(
-      alpha: 0.20,
-    ),
-    transitionDuration: const Duration(
-      milliseconds: 280,
-    ),
-    pageBuilder: (
-      context,
-      animation,
-      secondaryAnimation,
-    ) {
-      return const Align(
-        alignment: Alignment.topCenter,
-        child: NotificationsSheet(),
-      );
-    },
-    transitionBuilder: (
-      context,
-      animation,
-      secondaryAnimation,
-      child,
-    ) {
-      final curvedAnimation =
-          CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve:
-            Curves.easeInCubic,
-      );
+                showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierLabel: 'Notifications',
+                  barrierColor: Colors.black.withValues(alpha: 0.20),
+                  transitionDuration: const Duration(milliseconds: 280),
+                  pageBuilder: (context, animation, secondaryAnimation) {
+                    return const Align(
+                      alignment: Alignment.topCenter,
+                      child: NotificationsSheet(),
+                    );
+                  },
+                  transitionBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        final curvedAnimation = CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                          reverseCurve: Curves.easeInCubic,
+                        );
 
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(
-            0,
-            -1,
-          ),
-          end: Offset.zero,
-        ).animate(
-          curvedAnimation,
-        ),
-        child: FadeTransition(
-          opacity:
-              curvedAnimation,
-          child: child,
-        ),
-      );
-    },
-  );
-},
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, -1),
+                            end: Offset.zero,
+                          ).animate(curvedAnimation),
+                          child: FadeTransition(
+                            opacity: curvedAnimation,
+                            child: child,
+                          ),
+                        );
+                      },
+                );
+              },
               icon: const Icon(
                 Icons.notifications_none_rounded,
-                size: AppSpacing.iconLG,
-                color:
-                    AppColors.textPrimary,
+                size: AppSpacing.iconMD,
+                color: AppColors.textPrimary,
               ),
             ),
           ],
@@ -333,27 +241,24 @@ class _GreetingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<HomeViewModel>(
-      builder: (
-        context,
-        viewModel,
-        child,
-      ) {
+      builder: (context, viewModel, child) {
         return Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Good morning, ${viewModel.driverName}',
-              style:
-                  AppTextStyles.displaySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.headingLarge.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
 
-            AppSpacing.gapXS,
+            AppSpacing.gapXXS,
 
             Text(
               'Ready to start earning?',
-              style: AppTextStyles
-                  .bodyLargeSecondary,
+              style: AppTextStyles.bodyMediumSecondary,
             ),
           ],
         );
@@ -361,7 +266,6 @@ class _GreetingSection extends StatelessWidget {
     );
   }
 }
-
 // =====================================================================
 // STATS GRID
 // =====================================================================
@@ -372,34 +276,19 @@ class _StatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<HomeViewModel>(
-      builder: (
-        context,
-        viewModel,
-        child,
-      ) {
+      builder: (context, viewModel, child) {
         return GridView.builder(
           shrinkWrap: true,
-          physics:
-              const NeverScrollableScrollPhysics(),
-          itemCount:
-              viewModel.stats.length,
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: viewModel.stats.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing:
-                AppSpacing.md,
-            mainAxisSpacing:
-                AppSpacing.md,
-            childAspectRatio: 1.65,
+            crossAxisSpacing: AppSpacing.md,
+            mainAxisSpacing: AppSpacing.md,
+            childAspectRatio: 1.75,
           ),
-          itemBuilder: (
-            context,
-            index,
-          ) {
-            return HomeStatsCard(
-              stat:
-                  viewModel.stats[index],
-            );
+          itemBuilder: (context, index) {
+            return HomeStatsCard(stat: viewModel.stats[index]);
           },
         );
       },
@@ -417,25 +306,17 @@ class _RecentTripSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<HomeViewModel>(
-      builder: (
-        context,
-        viewModel,
-        child,
-      ) {
-        final trip =
-            viewModel.recentTrip;
+      builder: (context, viewModel, child) {
+        final trip = viewModel.recentTrip;
 
         if (trip == null) {
           return Text(
             'No recent trips yet.',
-            style: AppTextStyles
-                .bodyMediumSecondary,
+            style: AppTextStyles.bodyMediumSecondary,
           );
         }
 
-        return RecentTripCard(
-          trip: trip,
-        );
+        return RecentTripCard(trip: trip);
       },
     );
   }

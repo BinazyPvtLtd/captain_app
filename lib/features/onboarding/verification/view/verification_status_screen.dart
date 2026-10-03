@@ -2,7 +2,6 @@ import 'package:driver_app/core/widgets/app_primary_button.dart';
 import 'package:driver_app/features/onboarding/verification/view/verification_approved_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -13,152 +12,125 @@ import '../../../../core/widgets/app_status_badge.dart';
 import '../model/verification_item_model.dart';
 import '../view_model/verification_status_view_model.dart';
 
-class VerificationStatusScreen extends StatelessWidget {
-  const VerificationStatusScreen({
-    super.key,
-  });
+class VerificationStatusView extends StatelessWidget {
+  const VerificationStatusView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) =>
-          VerificationStatusViewModel(),
-      child: const _VerificationStatusView(),
+      create: (_) => VerificationStatusViewModel(),
+      child: const _VerificationStatusContent(),
     );
   }
 }
 
-// =====================================================================
-// MAIN VIEW
-// =====================================================================
-
-class _VerificationStatusView extends StatelessWidget {
-  const _VerificationStatusView();
+class _VerificationStatusContent extends StatelessWidget {
+  const _VerificationStatusContent();
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final bool compact = screenHeight < 700;
+
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
 
       bottomNavigationBar: const _ContinueSection(),
 
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
-            // =====================================================
-            // HEADER
-            // =====================================================
-
             const _Header(),
 
             const Divider(
               height: 1,
+              thickness: 1,
+              color: AppColors.divider,
             ),
-
-            // =====================================================
-            // CONTENT
-            // =====================================================
 
             Expanded(
               child: SingleChildScrollView(
-                physics:
-                    const BouncingScrollPhysics(),
-
-                padding:
-                    const EdgeInsets.fromLTRB(
+                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenHorizontal,
+                  compact ? AppSpacing.lg : AppSpacing.xl,
+                  AppSpacing.screenHorizontal,
                   AppSpacing.xl,
-                  AppSpacing.xxxl,
-                  AppSpacing.xl,
-                  AppSpacing.xxxl,
                 ),
-
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // =============================================
-                    // VERIFICATION ICON
-                    // =============================================
-
                     const _VerificationIcon(),
 
-                    AppSpacing.gapXXL,
-
-                    // =============================================
-                    // TITLE
-                    // =============================================
+                    SizedBox(
+                      height: compact
+                          ? AppSpacing.md
+                          : AppSpacing.lg,
+                    ),
 
                     Text(
                       'Verification in Progress',
                       textAlign: TextAlign.center,
-                      style:
-                          AppTextStyles.displaySmall,
+                      style: AppTextStyles.headingLarge.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
 
-                    AppSpacing.gapSM,
-
-                    // =============================================
-                    // SUBTITLE
-                    // =============================================
+                    AppSpacing.gapXS,
 
                     Text(
                       'We’re reviewing your documents.',
                       textAlign: TextAlign.center,
-                      style:
-                          AppTextStyles.bodyLargeSecondary,
+                      style: AppTextStyles.bodyMediumSecondary,
                     ),
 
-                    AppSpacing.gapXXXL,
-
-                    // =============================================
-                    // STATUS CARD
-                    // =============================================
+                    SizedBox(
+                      height: compact
+                          ? AppSpacing.lg
+                          : AppSpacing.xl,
+                    ),
 
                     const _VerificationCard(),
 
-                    AppSpacing.gapXXL,
-
-                    // =============================================
-                    // UNDER REVIEW
-                    // =============================================
+                    SizedBox(
+                      height: compact
+                          ? AppSpacing.lg
+                          : AppSpacing.xl,
+                    ),
 
                     const AppStatusBadge(
                       text: 'Under Review',
                       type: AppStatusType.neutral,
                     ),
 
-                    AppSpacing.gapMD,
-
-                    // =============================================
-                    // INFO
-                    // =============================================
+                    AppSpacing.gapSM,
 
                     ConstrainedBox(
                       constraints: const BoxConstraints(
-                        maxWidth: 360,
+                        maxWidth: 320,
                       ),
                       child: Text(
                         'We’ll notify you when your account is approved.',
                         textAlign: TextAlign.center,
-                        style:
-                            AppTextStyles.bodyMediumSecondary,
+                        style: AppTextStyles.bodyMediumSecondary,
                       ),
                     ),
 
-                    AppSpacing.gapXXL,
-
-                    // =============================================
-                    // VIEW DOCUMENTS
-                    // =============================================
+                    SizedBox(
+                      height: compact
+                          ? AppSpacing.lg
+                          : AppSpacing.xl,
+                    ),
 
                     SizedBox(
-                      width: 220,
+                      width: 190,
                       child: AppSecondaryButton(
                         title: 'View Documents',
                         onPressed: () {
                           context
-                              .read<
-                                  VerificationStatusViewModel>()
+                              .read<VerificationStatusViewModel>()
                               .viewDocuments(
                             onPressed: () {
                               debugPrint(
@@ -173,7 +145,7 @@ class _VerificationStatusView extends StatelessWidget {
                       ),
                     ),
 
-                    AppSpacing.gapXL,
+                    AppSpacing.gapLG,
                   ],
                 ),
               ),
@@ -185,6 +157,147 @@ class _VerificationStatusView extends StatelessWidget {
   }
 }
 
+// class VerificationStatusView extends StatelessWidget {
+//   const VerificationStatusView();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final screenHeight = MediaQuery.sizeOf(context).height;
+
+//     final bool compact = screenHeight < 700;
+
+//     return Scaffold(
+//       backgroundColor: AppColors.background,
+//       resizeToAvoidBottomInset: true,
+
+//       bottomNavigationBar: const _ContinueSection(),
+
+//       body: SafeArea(
+//         bottom: false,
+//         child: Column(
+//           children: [
+//             const _Header(),
+
+//             const Divider(
+//               height: 1,
+//               thickness: 1,
+//               color: AppColors.divider,
+//             ),
+
+//             Expanded(
+//               child: SingleChildScrollView(
+//                 physics: const ClampingScrollPhysics(),
+//                 padding: EdgeInsets.fromLTRB(
+//                   AppSpacing.screenHorizontal,
+//                   compact
+//                       ? AppSpacing.lg
+//                       : AppSpacing.xl,
+//                   AppSpacing.screenHorizontal,
+//                   AppSpacing.xl,
+//                 ),
+//                 child: Column(
+//                   crossAxisAlignment:
+//                       CrossAxisAlignment.center,
+//                   children: [
+//                     const _VerificationIcon(),
+
+//                     SizedBox(
+//                       height: compact
+//                           ? AppSpacing.md
+//                           : AppSpacing.lg,
+//                     ),
+
+//                     Text(
+//                       'Verification in Progress',
+//                       textAlign: TextAlign.center,
+//                       style:
+//                           AppTextStyles.headingLarge.copyWith(
+//                         fontWeight: FontWeight.w700,
+//                       ),
+//                     ),
+
+//                     AppSpacing.gapXS,
+
+//                     Text(
+//                       'We’re reviewing your documents.',
+//                       textAlign: TextAlign.center,
+//                       style:
+//                           AppTextStyles.bodyMediumSecondary,
+//                     ),
+
+//                     SizedBox(
+//                       height: compact
+//                           ? AppSpacing.lg
+//                           : AppSpacing.xl,
+//                     ),
+
+//                     const _VerificationCard(),
+
+//                     SizedBox(
+//                       height: compact
+//                           ? AppSpacing.lg
+//                           : AppSpacing.xl,
+//                     ),
+
+//                     const AppStatusBadge(
+//                       text: 'Under Review',
+//                       type: AppStatusType.neutral,
+//                     ),
+
+//                     AppSpacing.gapSM,
+
+//                     ConstrainedBox(
+//                       constraints: const BoxConstraints(
+//                         maxWidth: 320,
+//                       ),
+//                       child: Text(
+//                         'We’ll notify you when your account is approved.',
+//                         textAlign: TextAlign.center,
+//                         style:
+//                             AppTextStyles.bodyMediumSecondary,
+//                       ),
+//                     ),
+
+//                     SizedBox(
+//                       height: compact
+//                           ? AppSpacing.lg
+//                           : AppSpacing.xl,
+//                     ),
+
+//                     SizedBox(
+//                       width: 190,
+//                       child: AppSecondaryButton(
+//                         title: 'View Documents',
+//                         onPressed: () {
+//                           context
+//                               .read<
+//                                   VerificationStatusViewModel>()
+//                               .viewDocuments(
+//                             onPressed: () {
+//                               debugPrint(
+//                                 'Open submitted documents',
+//                               );
+
+//                               // TODO:
+//                               // Open submitted documents screen.
+//                             },
+//                           );
+//                         },
+//                       ),
+//                     ),
+
+//                     AppSpacing.gapLG,
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 // =====================================================================
 // HEADER
 // =====================================================================
@@ -195,18 +308,18 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 72,
+      height: 60,
       child: Row(
         children: [
           SizedBox(
-            width: 64,
+            width: 56,
             child: IconButton(
               onPressed: () {
                 Navigator.of(context).maybePop();
               },
               icon: const Icon(
                 Icons.arrow_back_rounded,
-                size: AppSpacing.iconLG,
+                size: AppSpacing.iconMD,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -219,19 +332,20 @@ class _Header extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style:
-                  AppTextStyles.headingLarge,
+                  AppTextStyles.headingMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
 
           const SizedBox(
-            width: 64,
+            width: 56,
           ),
         ],
       ),
     );
   }
 }
-
 // =====================================================================
 // VERIFICATION ICON
 // =====================================================================
@@ -242,8 +356,8 @@ class _VerificationIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 118,
-      height: 118,
+      width: 88,
+      height: 88,
       decoration: BoxDecoration(
         color: AppColors.surfaceSecondary,
         borderRadius: BorderRadius.circular(
@@ -252,7 +366,7 @@ class _VerificationIcon extends StatelessWidget {
       ),
       child: const Icon(
         Icons.fact_check_outlined,
-        size: 64,
+        size: AppSpacing.iconXXL,
         color: AppColors.textPrimary,
       ),
     );
@@ -268,8 +382,7 @@ class _VerificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<
-        VerificationStatusViewModel>(
+    return Consumer<VerificationStatusViewModel>(
       builder: (
         context,
         viewModel,
@@ -277,10 +390,10 @@ class _VerificationCard extends StatelessWidget {
       ) {
         return AppCard(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.md,
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
           ),
-          radius: AppSpacing.radiusXL,
+          radius: AppSpacing.radiusLG,
           child: Column(
             children: [
               for (
@@ -289,14 +402,14 @@ class _VerificationCard extends StatelessWidget {
                 index++
               ) ...[
                 _VerificationRow(
-                  item:
-                      viewModel.items[index],
+                  item: viewModel.items[index],
                 ),
 
                 if (index !=
                     viewModel.items.length - 1)
                   const Divider(
                     height: 1,
+                    color: AppColors.divider,
                   ),
               ],
             ],
@@ -306,7 +419,6 @@ class _VerificationCard extends StatelessWidget {
     );
   }
 }
-
 
 
 // =====================================================================
@@ -324,43 +436,35 @@ class _VerificationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.md,
+        vertical: AppSpacing.sm,
       ),
       child: Row(
         children: [
-          // =================================================
-          // TITLE
-          // =================================================
-
           Expanded(
             child: Text(
               item.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style:
-                  AppTextStyles.titleMedium,
-            ),
-          ),
-
-          // =================================================
-          // STATUS
-          // =================================================
-
-          Text(
-            item.status,
-            style:
-                AppTextStyles.labelMedium.copyWith(
-              color:
-                  AppColors.textSecondary,
-              fontWeight:
-                  FontWeight.w600,
-              letterSpacing: 0.7,
+                  AppTextStyles.titleSmall.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
 
           AppSpacing.horizontalSM,
 
-          // =================================================
-          // CHECK
-          // =================================================
+          Text(
+            item.status,
+            style:
+                AppTextStyles.labelMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
+
+          AppSpacing.horizontalXS,
 
           const Icon(
             Icons.check_rounded,
@@ -381,34 +485,34 @@ class _ContinueSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenHorizontal,
-          AppSpacing.md,
-          AppSpacing.screenHorizontal,
-          AppSpacing.md,
-        ),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(
-            top: BorderSide(
-              color: AppColors.divider,
-            ),
+    final double systemBottomInset =
+        MediaQuery.viewPaddingOf(context).bottom;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.divider,
           ),
         ),
-        child: AppPrimaryButton(
-          title: 'Continue',
-          onPressed: () {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) =>
-          const VerificationApprovedScreen(),
-    ),
-  );
-},
-        ),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.sm,
+        AppSpacing.screenHorizontal,
+        AppSpacing.sm + systemBottomInset,
+      ),
+      child: AppPrimaryButton(
+        title: 'Continue',
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  const VerificationApprovedScreen(),
+            ),
+          );
+        },
       ),
     );
   }

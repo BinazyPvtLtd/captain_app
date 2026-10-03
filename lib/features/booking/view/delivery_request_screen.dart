@@ -143,37 +143,34 @@ class _DeliveryRequestViewState
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor:
-          AppColors.surfaceSecondary,
-      body: SafeArea(
-        child: Consumer<
-            DeliveryRequestViewModel>(
-          builder: (
-            context,
-            viewModel,
-            child,
-          ) {
-            return SingleChildScrollView(
-              physics:
-                  const BouncingScrollPhysics(),
-              padding:
-                  const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                AppSpacing.sm,
-              ),
-              child: _DeliveryRequestCard(
-                viewModel: viewModel,
-              ),
-            );
-          },
-        ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: AppColors.surfaceSecondary,
+
+    body: SafeArea(
+      child: Consumer<DeliveryRequestViewModel>(
+        builder: (
+          context,
+          viewModel,
+          child,
+        ) {
+          return Padding(
+            padding: const EdgeInsets.all(
+              AppSpacing.sm,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return _DeliveryRequestCard(
+                  viewModel: viewModel,
+                );
+              },
+            ),
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // =====================================================================
@@ -189,162 +186,116 @@ class _DeliveryRequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final request =
-        viewModel.request;
+    final request = viewModel.request;
 
     return AppCard(
       padding: EdgeInsets.zero,
-      radius: AppSpacing.radiusXL,
+      radius: AppSpacing.radiusLG,
       showShadow: true,
       child: Column(
         children: [
           const _RequestHeader(),
 
-          const Divider(
-            height: 1,
-          ),
+          const Divider(height: 1),
 
-          Padding(
-            padding: const EdgeInsets.all(
-              AppSpacing.xl,
-            ),
-            child: Column(
-              children: [
-                // =============================================
-                // EARNING
-                // =============================================
-
-                Text(
-                  request.earning,
-                  textAlign: TextAlign.center,
-                  style:
-                      AppTextStyles.displayLarge.copyWith(
-                    fontSize: 40,
-                    fontWeight:
-                        FontWeight.w700,
-                  ),
-                ),
-
-                AppSpacing.gapXS,
-
-                Text(
-                  'ESTIMATED EARNINGS',
-                  style:
-                      AppTextStyles.labelLarge.copyWith(
-                    color:
-                        AppColors.textSecondary,
-                    letterSpacing: 1.4,
-                  ),
-                ),
-
-                const SizedBox(
-  height: AppSpacing.lg,
-),
-
-                // =============================================
-                // ROUTE
-                // =============================================
-
-                _RouteSection(
-                  pickup: request.pickup,
-                  drop: request.drop,
-                  pickupDistance:
-                      request.pickupDistance,
-                ),
-
-                AppSpacing.gapXL,
-
-                // =============================================
-                // TRIP INFO
-                // =============================================
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _TripInfoCard(
-                        icon:
-                            Icons.route_outlined,
-                        label:
-                            'TRIP DISTANCE',
-                        value:
-                            request.tripDistance,
-                      ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              child: Column(
+                children: [
+                  // EARNING
+                  Text(
+                    request.earning,
+                    textAlign: TextAlign.center,
+                    style:
+                        AppTextStyles.displaySmall.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
 
-                    AppSpacing.horizontalMD,
-
-                    Expanded(
-                      child: _TripInfoCard(
-                        icon:
-                            Icons.schedule_outlined,
-                        label:
-                            'ESTIMATED TIME',
-                        value:
-                            request.estimatedTime,
-                      ),
+                  Text(
+                    'ESTIMATED EARNINGS',
+                    style:
+                        AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
                     ),
-                  ],
-                ),
+                  ),
 
-                AppSpacing.gapXL,
+                  AppSpacing.gapMD,
 
-                const Divider(
-                  height: 1,
-                ),
+                  // PICKUP + DROP
+                  _RouteSection(
+                    pickup: request.pickup,
+                    drop: request.drop,
+                    pickupDistance:
+                        request.pickupDistance,
+                  ),
 
-                AppSpacing.gapLG,
+                  AppSpacing.gapMD,
 
-                // =============================================
-                // GOODS TYPE
-                // =============================================
+                  // DISTANCE + TIME
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _TripInfoCard(
+                          icon: Icons.route_outlined,
+                          label: 'TRIP DISTANCE',
+                          value: request.tripDistance,
+                        ),
+                      ),
 
-                _DetailsRow(
-                  icon:
-                      Icons.category_outlined,
-                  label:
-                      'Goods Type',
-                  value:
-                      request.goodsType,
-                ),
+                      AppSpacing.horizontalSM,
 
-                AppSpacing.gapLG,
+                      Expanded(
+                        child: _TripInfoCard(
+                          icon: Icons.schedule_outlined,
+                          label: 'ESTIMATED TIME',
+                          value: request.estimatedTime,
+                        ),
+                      ),
+                    ],
+                  ),
 
-                // =============================================
-                // VEHICLE
-                // =============================================
+                  AppSpacing.gapMD,
 
-                _DetailsRow(
-                  icon:
-                      Icons.local_shipping_outlined,
-                  label:
-                      'Vehicle Req.',
-                  value:
-                      request.vehicleRequired,
-                ),
+                  const Divider(height: 1),
 
-                AppSpacing.gapXL,
+                  AppSpacing.gapSM,
 
-                // =============================================
-                // TIMER
-                // =============================================
+                  _DetailsRow(
+                    icon: Icons.category_outlined,
+                    label: 'Goods Type',
+                    value: request.goodsType,
+                  ),
 
-                _TimerSection(
-                  viewModel:
-                      viewModel,
-                ),
+                  AppSpacing.gapSM,
 
-                AppSpacing.gapXL,
+                  _DetailsRow(
+                    icon: Icons.local_shipping_outlined,
+                    label: 'Vehicle Req.',
+                    value: request.vehicleRequired,
+                  ),
 
-                // =============================================
-                // SWIPE CONTROL
-                // =============================================
+                  const Spacer(),
 
-                _FullWidthBookingSwipe(
-  viewModel: viewModel,
-),
+                  // TIMER
+                  _TimerSection(
+                    viewModel: viewModel,
+                  ),
 
-                
-              ],
+                  AppSpacing.gapSM,
+
+                  // ALWAYS VISIBLE
+                  _FullWidthBookingSwipe(
+                    viewModel: viewModel,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -352,9 +303,6 @@ class _DeliveryRequestCard extends StatelessWidget {
     );
   }
 }
-
-
-
 // =====================================================================
 // HEADER
 // =====================================================================
@@ -365,41 +313,39 @@ class _RequestHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
       ),
       child: Row(
         children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
-              color:
-                  AppColors.surfaceSecondary,
-              borderRadius:
-                  BorderRadius.circular(
+              color: AppColors.surfaceSecondary,
+              borderRadius: BorderRadius.circular(
                 AppSpacing.radiusMD,
               ),
             ),
             child: const Icon(
               Icons.notifications_active_outlined,
-              size:
-                  AppSpacing.iconMD,
-              color:
-                  AppColors.textPrimary,
+              size: AppSpacing.iconSM,
+              color: AppColors.textPrimary,
             ),
           ),
 
-          AppSpacing.horizontalMD,
+          AppSpacing.horizontalSM,
 
           Expanded(
             child: Text(
               'NEW DELIVERY REQUEST',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style:
-                  AppTextStyles.labelLarge.copyWith(
-                letterSpacing: 1.5,
+                  AppTextStyles.labelMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.0,
               ),
             ),
           ),
@@ -427,35 +373,31 @@ class _RouteSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
           children: [
             const Icon(
               Icons.my_location_rounded,
-              size: 28,
-              color:
-                  AppColors.primary,
+              size: AppSpacing.iconSM,
+              color: AppColors.primary,
             ),
 
             Container(
               width: 1.5,
-              height: 62,
-              color:
-                  AppColors.borderDark,
+              height: 42,
+              color: AppColors.borderDark,
             ),
 
             const Icon(
               Icons.location_on_outlined,
-              size: 30,
-              color:
-                  AppColors.primary,
+              size: AppSpacing.iconMD,
+              color: AppColors.primary,
             ),
           ],
         ),
 
-        AppSpacing.horizontalLG,
+        AppSpacing.horizontalMD,
 
         Expanded(
           child: Column(
@@ -465,57 +407,59 @@ class _RouteSection extends StatelessWidget {
               Text(
                 'PICKUP',
                 style:
-                    AppTextStyles.labelLarge.copyWith(
-                  color:
-                      AppColors.textSecondary,
-                  letterSpacing: 0.8,
+                    AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.7,
                 ),
               ),
 
-              AppSpacing.gapXS,
+              AppSpacing.gapXXS,
 
               Text(
                 pickup,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style:
-                    AppTextStyles.titleLarge,
+                    AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
 
-              AppSpacing.gapXS,
+              AppSpacing.gapXXS,
 
               Text(
                 pickupDistance,
                 style:
-                    AppTextStyles.bodyMediumSecondary,
-              ),
-
-              const SizedBox(
-  height: AppSpacing.sm,
-),
-
-const Divider(
-  height: 1,
-),
-
-const SizedBox(
-  height: AppSpacing.sm,
-),
-
-              Text(
-                'DROP',
-                style:
-                    AppTextStyles.labelLarge.copyWith(
-                  color:
-                      AppColors.textSecondary,
-                  letterSpacing: 1,
-                ),
+                    AppTextStyles.bodySmall,
               ),
 
               AppSpacing.gapXS,
 
+              const Divider(height: 1),
+
+              AppSpacing.gapXS,
+
+              Text(
+                'DROP',
+                style:
+                    AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.7,
+                ),
+              ),
+
+              AppSpacing.gapXXS,
+
               Text(
                 drop,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style:
-                    AppTextStyles.headingMedium,
+                    AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -546,40 +490,51 @@ class _TripInfoCard extends StatelessWidget {
       padding: const EdgeInsets.all(
         AppSpacing.sm,
       ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+      radius: AppSpacing.radiusLG,
+      child: Row(
         children: [
           Icon(
             icon,
-            size: AppSpacing.iconMD,
+            size: AppSpacing.iconSM,
             color: AppColors.textSecondary,
           ),
 
-          AppSpacing.gapXS,
+          AppSpacing.horizontalSM,
 
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
-              letterSpacing: 0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+
+                AppSpacing.gapXXS,
+
+                Text(
+                  value,
+                  style:
+                      AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-          ),
-
-          AppSpacing.gapXS,
-
-          Text(
-            value,
-            style: AppTextStyles.titleLarge,
           ),
         ],
       ),
     );
   }
 }
-
 // =====================================================================
 // DETAILS ROW
 // =====================================================================
@@ -601,18 +556,15 @@ class _DetailsRow extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size:
-              AppSpacing.iconSM,
-          color:
-              AppColors.textSecondary,
+          size: AppSpacing.iconSM,
+          color: AppColors.textSecondary,
         ),
 
         AppSpacing.horizontalSM,
 
         Text(
           label,
-          style:
-              AppTextStyles.bodyLargeSecondary,
+          style: AppTextStyles.bodyMediumSecondary,
         ),
 
         const Spacer(),
@@ -620,20 +572,19 @@ class _DetailsRow extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            maxLines: 2,
-            overflow:
-                TextOverflow.ellipsis,
-            textAlign:
-                TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
             style:
-                AppTextStyles.titleMedium,
+                AppTextStyles.titleSmall.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
     );
   }
 }
-
 class _FullWidthBookingSwipe extends StatelessWidget {
   final DeliveryRequestViewModel viewModel;
 
@@ -648,7 +599,7 @@ class _FullWidthBookingSwipe extends StatelessWidget {
         context,
         constraints,
       ) {
-        const double handleSize = 62;
+        const double handleSize = 48;
 
         final double maxDrag =
             constraints.maxWidth - handleSize;
@@ -662,10 +613,10 @@ class _FullWidthBookingSwipe extends StatelessWidget {
               ),
             ),
 
-            AppSpacing.gapMD,
+            AppSpacing.gapXS,
 
             Container(
-              height: 72,
+              height: 56,
               decoration: BoxDecoration(
                 color: AppColors.surfaceSecondary,
                 borderRadius: BorderRadius.circular(
@@ -751,7 +702,7 @@ class _FullWidthBookingSwipe extends StatelessWidget {
                           child: const Icon(
                             Icons.check_rounded,
                             color: AppColors.white,
-                            size: AppSpacing.iconLG,
+                            size: AppSpacing.iconMD,
                           ),
                         ),
                       ),

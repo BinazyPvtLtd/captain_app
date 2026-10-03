@@ -72,7 +72,7 @@ static const TextStyle phoneHint = TextStyle(
 
 static const TextStyle buttonText = TextStyle(
   fontFamily: AppTypography.fontFamily,
-  fontSize: 18,
+  fontSize: 16,
   fontWeight: FontWeight.w600,
   color: AppColors.white,
   height: 1.2,

@@ -116,7 +116,7 @@ class _VerificationApprovedView
                   ),
                 ),
 
-                AppSpacing.gapXXXL,
+                AppSpacing.gapXXL,
 
                 // =================================================
                 // DRIVER ILLUSTRATION

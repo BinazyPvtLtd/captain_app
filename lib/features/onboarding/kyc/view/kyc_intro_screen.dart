@@ -62,7 +62,7 @@ class _KycIntroView extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    AppSpacing.gapXXXL,
+                    AppSpacing.gapXS,
 
                     // =============================================
                     // SHIELD ICON
@@ -70,7 +70,7 @@ class _KycIntroView extends StatelessWidget {
 
                     const _VerificationIcon(),
 
-                    AppSpacing.gapXXL,
+                    AppSpacing.gapXL,
 
                     // =============================================
                     // TITLE
@@ -99,7 +99,7 @@ class _KycIntroView extends StatelessWidget {
                       ),
                     ),
 
-                    AppSpacing.gapXXXL,
+                    AppSpacing.gapXL,
 
                     // =============================================
                     // DOCUMENT LIST
@@ -146,7 +146,7 @@ class _KycHeader extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       child: SizedBox(
-        height: 56,
+        height: 45,
         child: Row(
           children: [
             // =================================================
@@ -176,7 +176,7 @@ class _KycHeader extends StatelessWidget {
 
             Expanded(
               child: Text(
-                'STEP 2 OF 3',
+                'STEP 2 OF 4',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.labelLarge.copyWith(
                   color: AppColors.textSecondary,
@@ -208,8 +208,8 @@ class _VerificationIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 110,
-      height: 110,
+      width: 90,
+      height: 90,
       decoration: BoxDecoration(
         color: AppColors.surfaceSecondary,
         borderRadius: BorderRadius.circular(
@@ -271,7 +271,7 @@ class _KycRequirementTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 66,
+      height: 62,
       decoration: BoxDecoration(
         border: Border(
           top: showTopBorder
