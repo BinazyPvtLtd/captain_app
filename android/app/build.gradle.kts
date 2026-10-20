@@ -1,17 +1,24 @@
+
+import java.util.Properties
+import java.io.FileInputStream
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
 
-    // START: FlutterFire Configuration
+    // FlutterFire Configuration
     id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
 
     id("kotlin-android")
-
-    // The Flutter Gradle Plugin must be applied
-    // after Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Release signing properties
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -19,18 +26,10 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
-    // =========================================================
-    // JAVA
-    // =========================================================
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
-    // =========================================================
-    // KOTLIN
-    // =========================================================
 
     kotlin {
         compilerOptions {
@@ -38,12 +37,8 @@ android {
         }
     }
 
-    // =========================================================
-    // DEFAULT CONFIG
-    // =========================================================
-
     defaultConfig {
-        applicationId = "com.example.driver_app"
+        applicationId = "com.patgolito.partner"
 
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
@@ -52,13 +47,19 @@ android {
         versionName = flutter.versionName
     }
 
-    // =========================================================
-    // BUILD TYPES
-    // =========================================================
+    // Production upload signing
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+    }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
