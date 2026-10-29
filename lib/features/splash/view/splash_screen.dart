@@ -1,5 +1,12 @@
+import 'package:driver_app/core/storage/onboarding_progress_storage.dart';
 import 'package:driver_app/core/widgets/animated_patgolito_logo.dart';
+import 'package:driver_app/core/widgets/main_navigation/view/main_navigation_screen.dart';
 import 'package:driver_app/features/auth/view/login_screen.dart';
+import 'package:driver_app/features/onboarding/onboarding_steps.dart';
+import 'package:driver_app/features/onboarding/vehicle/view/vehicle_details_screen.dart';
+import 'package:driver_app/features/onboarding/vehicle/view/vehicle_documents_screen.dart';
+import 'package:driver_app/features/onboarding/vehicle/view/vehicle_type_selection_screen.dart';
+import 'package:driver_app/features/onboarding/view/complete_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -83,40 +90,103 @@ class _SplashScreenState
   // NAVIGATION
   // =========================================================
 
-  void _goToNextScreen() {
-    if (!mounted) {
-      return;
-    }
+ Future<void> _goToNextScreen(
+  SplashDestination destination,
+) async {
+  if (!mounted) return;
 
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        transitionDuration: const Duration(
-          milliseconds: 450,
-        ),
-        pageBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-        ) {
-          return const LoginScreen();
-        },
-        transitionsBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-          child,
-        ) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            ),
-            child: child,
-          );
-        },
-      ),
-    );
+  Widget nextScreen;
+
+  switch (destination) {
+    // ==========================================
+    // NOT LOGGED IN
+    // ==========================================
+    case SplashDestination.login:
+      nextScreen = const LoginScreen();
+      break;
+
+    // ==========================================
+    // ONBOARDING IN PROGRESS
+    // ==========================================
+    case SplashDestination.onboarding:
+      final savedScreen =
+          await OnboardingProgressStorage.getSavedScreen();
+
+      debugPrint('SAVED ONBOARDING SCREEN: $savedScreen');
+
+      switch (savedScreen) {
+        case OnboardingSteps.vehicleDetails:
+          final vehicleTypeId =
+              await OnboardingProgressStorage.getVehicleTypeId();
+
+          final vehicleTypeName =
+              await OnboardingProgressStorage.getVehicleTypeName();
+
+          if (vehicleTypeId != null && vehicleTypeName != null) {
+            nextScreen = VehicleDetailsScreen(
+              vehicleTypeId: vehicleTypeId,
+              vehicleTypeName: vehicleTypeName,
+            );
+          } else {
+            nextScreen = const VehicleTypeSelectionScreen();
+          }
+          break;
+
+        case OnboardingSteps.vehicleDocuments:
+          nextScreen = const VehicleDocumentsScreen();
+          break;
+
+        case OnboardingSteps.completeProfile:
+          nextScreen = const CompleteProfileScreen();
+          break;
+
+        default:
+          nextScreen = const VehicleTypeSelectionScreen();
+      }
+      break;
+
+    // ==========================================
+    // CAPTAIN APPROVED
+    // ==========================================
+    case SplashDestination.home:
+      await OnboardingProgressStorage.clear();
+
+      nextScreen = const MainNavigationScreen();
+      break;
   }
+
+  if (!mounted) return;
+
+  Navigator.of(context).pushReplacement(
+    PageRouteBuilder(
+      transitionDuration: const Duration(
+        milliseconds: 450,
+      ),
+      pageBuilder: (
+        context,
+        animation,
+        secondaryAnimation,
+      ) {
+        return nextScreen;
+      },
+      transitionsBuilder: (
+        context,
+        animation,
+        secondaryAnimation,
+        child,
+      ) {
+        return FadeTransition(
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          ),
+          child: child,
+        );
+      },
+    ),
+  );
+}
+
 
   // =========================================================
   // DISPOSE

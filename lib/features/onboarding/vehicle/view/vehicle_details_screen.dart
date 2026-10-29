@@ -1,3 +1,5 @@
+import 'package:driver_app/core/storage/onboarding_progress_storage.dart';
+import 'package:driver_app/features/onboarding/onboarding_steps.dart';
 import 'package:driver_app/features/onboarding/vehicle/view/vehicle_documents_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,21 +9,26 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_primary_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
-import '../model/vehicle_type_model.dart';
 import '../view_model/vehicle_details_view_model.dart';
 
 class VehicleDetailsScreen extends StatelessWidget {
+  final int vehicleTypeId;
+  final String vehicleTypeName;
+
   const VehicleDetailsScreen({
     super.key,
+    required this.vehicleTypeId,
+    required this.vehicleTypeName,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) =>
-          VehicleDetailsViewModel(),
-      child:
-          const _VehicleDetailsView(),
+      create: (_) => VehicleDetailsViewModel(
+        vehicleTypeId: vehicleTypeId,
+        vehicleTypeName: vehicleTypeName,
+      ),
+      child: const _VehicleDetailsView(),
     );
   }
 }
@@ -29,180 +36,6 @@ class VehicleDetailsScreen extends StatelessWidget {
 // =====================================================================
 // MAIN VIEW
 // =====================================================================
-
-// class _VehicleDetailsView
-//     extends StatelessWidget {
-//   const _VehicleDetailsView();
-
-//   @override
-//   Widget build(
-//     BuildContext context,
-//   ) {
-//     return Scaffold(
-//       backgroundColor:
-//           AppColors.background,
-
-//       bottomNavigationBar:
-//           const _BottomContinueButton(),
-
-//       body: SafeArea(
-//         child: Column(
-//           children: [
-//             // =====================================================
-//             // HEADER
-//             // =====================================================
-
-//             const _Header(),
-
-//             const Divider(
-//               height: 1,
-//             ),
-
-//             // =====================================================
-//             // CONTENT
-//             // =====================================================
-
-//             Expanded(
-//               child:
-//                   SingleChildScrollView(
-//                 physics:
-//                     const BouncingScrollPhysics(),
-//                 padding:
-//                     const EdgeInsets.fromLTRB(
-//                   AppSpacing.screenHorizontal,
-//                   AppSpacing.xl,
-//                   AppSpacing.screenHorizontal,
-//                   AppSpacing.xxxl,
-//                 ),
-//                 child: Column(
-//                   crossAxisAlignment:
-//                       CrossAxisAlignment.start,
-//                   children: [
-//                     // =============================================
-//                     // STEP
-//                     // =============================================
-
-//                     Text(
-//                       'STEP 3 OF 3',
-//                       style:
-//                           AppTextStyles.labelLarge
-//                               .copyWith(
-//                         color:
-//                             AppColors
-//                                 .textSecondary,
-//                         letterSpacing: 1.5,
-//                       ),
-//                     ),
-
-//                     AppSpacing.gapMD,
-
-//                     // =============================================
-//                     // PROGRESS
-//                     // =============================================
-
-//                     ClipRRect(
-//                       borderRadius:
-//                           BorderRadius.circular(
-//                         AppSpacing
-//                             .radiusCircular,
-//                       ),
-//                       child:
-//                           const LinearProgressIndicator(
-//                         value: 1,
-//                         minHeight: 6,
-//                         color:
-//                             AppColors.primary,
-//                         backgroundColor:
-//                             AppColors.border,
-//                       ),
-//                     ),
-
-//                     AppSpacing.gapXXL,
-
-//                     // =============================================
-//                     // TITLE
-//                     // =============================================
-
-//                     Text(
-//                       'Vehicle Details',
-//                       style:
-//                           AppTextStyles
-//                               .displaySmall,
-//                     ),
-
-//                     AppSpacing.gapXXL,
-
-//                     // =============================================
-//                     // VEHICLE TYPE
-//                     // =============================================
-
-//                     Text(
-//                       'SELECT VEHICLE TYPE',
-//                       style:
-//                           AppTextStyles.labelLarge
-//                               .copyWith(
-//                         color:
-//                             AppColors
-//                                 .textSecondary,
-//                         letterSpacing: 1.1,
-//                       ),
-//                     ),
-
-//                     AppSpacing.gapMD,
-
-//                     const _VehicleTypeSelector(),
-
-//                     AppSpacing.gapXXL,
-
-//                     // =============================================
-//                     // VEHICLE NUMBER
-//                     // =============================================
-
-//                     const _VehicleNumberField(),
-
-//                     AppSpacing.gapLG,
-
-//                     // =============================================
-//                     // BRAND
-//                     // =============================================
-
-//                     const _VehicleBrandField(),
-
-//                     AppSpacing.gapLG,
-
-//                     // =============================================
-//                     // MODEL
-//                     // =============================================
-
-//                     const _VehicleModelField(),
-
-//                     AppSpacing.gapLG,
-
-//                     // =============================================
-//                     // COLOR
-//                     // =============================================
-
-//                     const _VehicleColorField(),
-
-//                     AppSpacing.gapLG,
-
-//                     // =============================================
-//                     // YEAR
-//                     // =============================================
-
-//                     const _ManufacturingYearField(),
-
-//                     AppSpacing.gapXXL,
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 
 class _VehicleDetailsView extends StatelessWidget {
@@ -321,13 +154,13 @@ class _VehicleDetailsView extends StatelessWidget {
 
                     AppSpacing.gapLG,
 
-                    const _VehicleColorField(),
+                    // const _VehicleColorField(),
 
-                    AppSpacing.gapLG,
+                    // AppSpacing.gapLG,
 
-                    const _ManufacturingYearField(),
+                    // const _ManufacturingYearField(),
 
-                    AppSpacing.gapXL,
+                    // AppSpacing.gapXL,
                   ],
                 ),
               ),
@@ -509,47 +342,61 @@ class _VehicleTypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<VehicleDetailsViewModel>(
-      builder: (
-        context,
-        viewModel,
-        child,
-      ) {
-        return SizedBox(
-          height: 108,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount:
-                VehicleDetailsViewModel.vehicleTypes.length,
-            separatorBuilder: (context, index) {
-              return AppSpacing.horizontalSM;
-            },
-            itemBuilder: (context, index) {
-              final VehicleTypeModel vehicle =
-                  VehicleDetailsViewModel.vehicleTypes[index];
+    final viewModel = context.watch<VehicleDetailsViewModel>();
 
-              final bool selected =
-                  viewModel.selectedVehicleType?.id ==
-                      vehicle.id;
-
-              return _VehicleTypeCard(
-                vehicle: vehicle,
-                selected: selected,
-                onTap: () {
-                  viewModel.selectVehicleType(
-                    vehicle,
-                  );
-                },
-              );
-            },
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.primary,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.two_wheeler_rounded,
+            size: 32,
+            color: AppColors.textPrimary,
           ),
-        );
-      },
+
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  viewModel.vehicleTypeName,
+                  style: AppTextStyles.titleSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  'Selected vehicle type',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Icon(
+            Icons.check_circle,
+            color: AppColors.primary,
+          ),
+        ],
+      ),
     );
   }
 }
-
 // =====================================================================
 // VEHICLE TYPE CARD
 // =====================================================================
@@ -557,98 +404,102 @@ class _VehicleTypeSelector extends StatelessWidget {
 
 
 
-class _VehicleTypeCard extends StatelessWidget {
-  final VehicleTypeModel vehicle;
-  final bool selected;
-  final VoidCallback onTap;
+// class _VehicleTypeCard extends StatelessWidget {
+//   final VehicleTypeModel vehicle;
+//   final bool selected;
+//   final VoidCallback onTap;
 
-  const _VehicleTypeCard({
-    required this.vehicle,
-    required this.selected,
-    required this.onTap,
-  });
+//   const _VehicleTypeCard({
+//     required this.vehicle,
+//     required this.selected,
+//     required this.onTap,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(
-          milliseconds: 180,
-        ),
-        width: 100,
-        padding: const EdgeInsets.all(
-          AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.surfaceSecondary
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(
-            AppSpacing.radiusLG,
-          ),
-          border: Border.all(
-            color: selected
-                ? AppColors.primary
-                : AppColors.border,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    vehicle.icon,
-                    size: AppSpacing.iconXL,
-                    color: AppColors.textPrimary,
-                  ),
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: onTap,
+//       behavior: HitTestBehavior.opaque,
+//       child: AnimatedContainer(
+//         duration: const Duration(
+//           milliseconds: 180,
+//         ),
+//         width: 100,
+//         padding: const EdgeInsets.all(
+//           AppSpacing.sm,
+//         ),
+//         decoration: BoxDecoration(
+//           color: selected
+//               ? AppColors.surfaceSecondary
+//               : AppColors.surface,
+//           borderRadius: BorderRadius.circular(
+//             AppSpacing.radiusLG,
+//           ),
+//           border: Border.all(
+//             color: selected
+//                 ? AppColors.primary
+//                 : AppColors.border,
+//             width: selected ? 2 : 1,
+//           ),
+//         ),
+//         child: Stack(
+//           children: [
+//             Center(
+//               child: Column(
+//                 mainAxisSize: MainAxisSize.min,
+//                 children: [
+//                   Icon(
+//                     vehicle.icon,
+//                     size: AppSpacing.iconXL,
+//                     color: AppColors.textPrimary,
+//                   ),
 
-                  AppSpacing.gapSM,
+//                   AppSpacing.gapSM,
 
-                  Text(
-                    vehicle.title,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style:
-                        AppTextStyles.titleSmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+//                   Text(
+//                     vehicle.title,
+//                     textAlign: TextAlign.center,
+//                     maxLines: 2,
+//                     overflow: TextOverflow.ellipsis,
+//                     style:
+//                         AppTextStyles.titleSmall.copyWith(
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
 
-            if (selected)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(
-                      AppSpacing.radiusXS,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.check_rounded,
-                    size: AppSpacing.iconXS,
-                    color: AppColors.white,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//             if (selected)
+//               Positioned(
+//                 top: 0,
+//                 right: 0,
+//                 child: Container(
+//                   width: 24,
+//                   height: 24,
+//                   decoration: BoxDecoration(
+//                     color: AppColors.primary,
+//                     borderRadius: BorderRadius.circular(
+//                       AppSpacing.radiusXS,
+//                     ),
+//                   ),
+//                   child: const Icon(
+//                     Icons.check_rounded,
+//                     size: AppSpacing.iconXS,
+//                     color: AppColors.white,
+//                   ),
+//                 ),
+//               ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
+
 // =====================================================================
 // VEHICLE NUMBER
 // =====================================================================
@@ -1019,16 +870,21 @@ class _BottomContinueButton extends StatelessWidget {
               FocusManager.instance.primaryFocus?.unfocus();
 
               viewModel.continueVehicle(
-                context,
-                onSuccess: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const VehicleDocumentsScreen(),
-                    ),
-                  );
-                },
-              );
+  context,
+  onSuccess: () async {
+  await OnboardingProgressStorage.saveScreen(
+    OnboardingSteps.vehicleDocuments,
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => const VehicleDocumentsScreen(),
+    ),
+  );
+},
+);
             },
           );
         },

@@ -17,6 +17,8 @@ class KycVerificationScreen
     super.key,
   });
 
+  
+
   @override
   Widget build(
     BuildContext context,
@@ -28,6 +30,8 @@ class KycVerificationScreen
           const _KycVerificationView(),
     );
   }
+
+  
 }
 
 // =====================================================================
@@ -36,6 +40,9 @@ class KycVerificationScreen
 
 class _KycVerificationView extends StatelessWidget {
   const _KycVerificationView();
+
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -663,13 +670,12 @@ class _SubmitSection extends StatelessWidget {
                 viewModel.submitDocuments(
                   context,
                   onSuccess: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const VehicleDetailsScreen(),
-                      ),
-                    );
-                  },
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Documents submitted successfully'),
+    ),
+  );
+},
                 );
               },
             );

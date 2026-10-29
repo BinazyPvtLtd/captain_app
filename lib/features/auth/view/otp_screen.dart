@@ -1,5 +1,5 @@
 import 'package:driver_app/core/constants/app_assets.dart';
-import 'package:driver_app/features/onboarding/view/complete_profile_screen.dart';
+import 'package:driver_app/features/onboarding/vehicle/view/vehicle_type_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -12,19 +12,19 @@ import '../view_model/otp_view_model.dart';
 
 class OtpScreen extends StatelessWidget {
   final String phoneNumber;
-  final String verificationId;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
-    required this.verificationId,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => OtpViewModel(verificationId: verificationId),
-      child: _OtpView(phoneNumber: phoneNumber),
+      create: (_) => OtpViewModel(),
+      child: _OtpView(
+        phoneNumber: phoneNumber,
+      ),
     );
   }
 }
@@ -117,13 +117,15 @@ class _OtpViewState extends State<_OtpView> {
   }
 
   void _handleOtpSuccess() {
-    if (!mounted) return;
+  if (!mounted) return;
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
-      (route) => false,
-    );
-  }
+  Navigator.of(context).pushAndRemoveUntil(
+  MaterialPageRoute(
+    builder: (_) => const VehicleTypeSelectionScreen(),
+  ),
+  (route) => false,
+);
+}
 
   void _resendOtp() {
     context.read<OtpViewModel>().resendOtp(
