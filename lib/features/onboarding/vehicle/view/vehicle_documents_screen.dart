@@ -22,11 +22,10 @@ class VehicleDocumentsScreen
     BuildContext context,
   ) {
     return ChangeNotifierProvider(
-      create: (_) =>
-          VehicleDocumentsViewModel(),
-      child:
-          const _VehicleDocumentsView(),
-    );
+  create: (_) => VehicleDocumentsViewModel()
+    ..fetchCaptainDocuments(),
+  child: const _VehicleDocumentsView(),
+);
   }
 }
 
@@ -99,7 +98,34 @@ class _VehicleDocumentsView extends StatelessWidget {
 
                     const _DocumentList(),
 
+                    const SizedBox(height: 28),
+
+Text(
+  'Driver Documents',
+  style: AppTextStyles.headingLarge.copyWith(
+    fontWeight: FontWeight.w700,
+  ),
+),
+
+AppSpacing.gapXS,
+
+Text(
+  'Upload your Aadhaar card, driving licence and profile photo.',
+  style: AppTextStyles.bodyMediumSecondary.copyWith(
+    height: 1.45,
+  ),
+),
+
+AppSpacing.gapLG,
+
+                    const _DriverDocumentList(),
+
                     AppSpacing.gapXL,
+
+// Driver documents
+// const DriverDocumentsSection(),
+
+//                     AppSpacing.gapXL,
                   ],
                 ),
               ),
@@ -195,6 +221,34 @@ class _DocumentList
                           .documents
                           .length -
                       1)
+                AppSpacing.gapMD,
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _DriverDocumentList extends StatelessWidget {
+  const _DriverDocumentList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<VehicleDocumentsViewModel>(
+      builder: (context, viewModel, child) {
+        return Column(
+          children: [
+            for (
+              int index = 0;
+              index < viewModel.driverDocuments.length;
+              index++
+            ) ...[
+              _VehicleDocumentCard(
+                document: viewModel.driverDocuments[index],
+              ),
+
+              if (index != viewModel.driverDocuments.length - 1)
                 AppSpacing.gapMD,
             ],
           ],
@@ -366,9 +420,17 @@ class _DocumentInfo extends StatelessWidget {
 
         AppSpacing.gapXXS,
 
-        document.isUploaded
-            ? const _UploadedStatus()
-            : const _PendingStatus(),
+        if (document.isUploaded)
+  const _UploadedStatus()
+else if (document.isSelected)
+  Text(
+    'SELECTED: ${document.fileName ?? "Document"}',
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    style: AppTextStyles.bodyMediumSecondary,
+  )
+else
+  const _PendingStatus(),
       ],
     );
   }
@@ -617,65 +679,119 @@ class _ViewButton extends StatelessWidget {
     );
   }
 
-  void _showDocumentSheet(
-    BuildContext context,
-  ) {
-    final viewModel =
-        context.read<VehicleDocumentsViewModel>();
+//   void _showDocumentSheet(
+//     BuildContext context,
+//   ) {
+//     final viewModel =
+//         context.read<VehicleDocumentsViewModel>();
 
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.background,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(
-              AppSpacing.screenHorizontal,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Text(
-                  document.title,
-                  style: AppTextStyles.headingMedium,
-                ),
+//     showModalBottomSheet<void>(
+//       context: context,
+//       backgroundColor: AppColors.background,
+//       showDragHandle: true,
+//       isScrollControlled: true,
+//       builder: (sheetContext) {
+//         return SafeArea(
+//           child: Padding(
+//             padding: const EdgeInsets.all(
+//               AppSpacing.screenHorizontal,
+//             ),
+//             child: Column(
+//               mainAxisSize: MainAxisSize.min,
+//               crossAxisAlignment:
+//                   CrossAxisAlignment.start,
+//               children: [
+//                 Text(
+//                   document.title,
+//                   style: AppTextStyles.headingMedium,
+//                 ),
 
-                AppSpacing.gapSM,
+//                 AppSpacing.gapSM,
 
-                Text(
-                  document.fileName ??
-                      'Uploaded document',
-                  style:
-                      AppTextStyles.bodyMediumSecondary,
-                ),
+//                 Text(
+//                   document.fileName ??
+//                       'Uploaded document',
+//                   style:
+//                       AppTextStyles.bodyMediumSecondary,
+//                 ),
 
-                AppSpacing.gapXL,
+//                 AppSpacing.gapXL,
 
-                AppPrimaryButton(
-                  title: 'Replace Document',
-                  onPressed: () {
-                    Navigator.of(
-                      sheetContext,
-                    ).pop();
+//                 AppPrimaryButton(
+//                   title: 'Replace Document',
+//                   onPressed: () {
+//   Navigator.of(sheetContext).pop();
 
-                    viewModel.removeDocument(
-                      document,
-                    );
-                  },
-                ),
+//   viewModel.uploadDocument(
+//     context,
+//     document,
+//   );
+// },
+//                 ),
 
-                AppSpacing.gapMD,
-              ],
-            ),
+//                 AppSpacing.gapMD,
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
+void _showDocumentSheet(BuildContext context) {
+  final viewModel = context.read<VehicleDocumentsViewModel>();
+
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.background,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (sheetContext) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(
+            AppSpacing.screenHorizontal,
           ),
-        );
-      },
-    );
-  }
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                document.title,
+                style: AppTextStyles.headingMedium,
+              ),
+
+              AppSpacing.gapSM,
+
+              Text(
+                document.fileName ?? 'Uploaded document',
+                style: AppTextStyles.bodyMediumSecondary,
+              ),
+
+              AppSpacing.gapXL,
+
+              AppPrimaryButton(
+                title: 'Replace Document',
+                onPressed: () {
+                  // Sirf bottom sheet close karo.
+                  Navigator.of(sheetContext).pop();
+
+                  // Naya document select karne ke liye
+                  // existing upload flow call karo.
+                  viewModel.uploadDocument(
+                    context,
+                    document,
+                  );
+                },
+              ),
+
+              AppSpacing.gapMD,
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 }
 // =====================================================================
 // SUBMIT VEHICLE
@@ -725,23 +841,53 @@ class _SubmitVehicleSection extends StatelessWidget {
             title: 'Submit Vehicle',
             isLoading: viewModel.isSubmitting,
             onPressed: () {
-              FocusManager.instance.primaryFocus
-                  ?.unfocus();
+  FocusManager.instance.primaryFocus?.unfocus();
 
-              viewModel.submitVehicle(
-                context,
-                onSuccess: () {
-                  Navigator.of(context)
-                      .pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const VerificationStatusView(),
-                    ),
-                    (route) => false,
-                  );
-                },
-              );
-            },
+  // Check all vehicle and driver documents
+  if (!viewModel.areAllDocumentsUploaded) {
+  final bool vehicleDocumentsPending =
+      viewModel.documents.any((document) => !document.isUploaded);
+
+  final bool driverDocumentsPending =
+      viewModel.driverDocuments.any((document) => !document.isUploaded);
+
+  String message;
+
+  if (vehicleDocumentsPending && driverDocumentsPending) {
+    message = 'Please upload all required vehicle and driver documents.';
+  } else if (vehicleDocumentsPending) {
+    message = 'Please upload all required vehicle documents.';
+  } else {
+    message = 'Please upload all required driver documents.';
+  }
+
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+  return;
+}
+
+  
+
+  // Submit only after all documents are uploaded
+  viewModel.submitVehicle(
+    context,
+    onSuccess: () {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const VerificationStatusView(),
+        ),
+        (route) => false,
+      );
+    },
+  );
+},
           );
         },
       ),

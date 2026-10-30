@@ -1,3 +1,4 @@
+import 'package:driver_app/features/auth/view/login_screen.dart';
 import 'package:driver_app/features/profile/bank_details/view/bank_details_screen.dart';
 import 'package:driver_app/features/profile/documents/view/documents_screen.dart';
 import 'package:driver_app/features/profile/emergency_&_help/view/emergency_help_screen.dart';
@@ -219,23 +220,59 @@ class _ProfileView extends StatelessWidget {
                   ),
                   child: _LogoutButton(
                     isLoading: viewModel.isLoggingOut,
-                    onPressed: () {
-                      viewModel.logout(
-                        onSuccess: () {
-                          debugPrint('Driver logged out');
+                    onPressed: () async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Logout'),
+      content: const Text(
+        'Are you sure you want to logout?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(dialogContext, false);
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(dialogContext, true);
+          },
+          child: const Text('Logout'),
+        ),
+      ],
+    ),
+  );
 
-                          // TODO:
-                          // Navigator.of(context)
-                          //     .pushAndRemoveUntil(
-                          //   MaterialPageRoute(
-                          //     builder: (_) =>
-                          //         const LoginScreen(),
-                          //   ),
-                          //   (route) => false,
-                          // );
-                        },
-                      );
-                    },
+  if (confirmed != true || !context.mounted) return;
+
+  try {
+    await viewModel.logout(
+      onSuccess: () {
+        if (!context.mounted) return;
+
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(),
+          ),
+          (route) => false,
+        );
+      },
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Unable to clear the local session.'),
+      ),
+    );
+  }
+},
                   ),
                 ),
 

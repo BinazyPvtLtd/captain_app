@@ -1,3 +1,5 @@
+import 'package:driver_app/core/storage/token_storage.dart';
+import 'package:driver_app/features/auth/services/laravel_auth_service.dart';
 import 'package:flutter/material.dart';
 
 import '../model/driver_profile_model.dart';
@@ -13,6 +15,9 @@ class ProfileViewModel extends ChangeNotifier {
             );
 
   final DriverProfileModel _profile;
+
+
+  final LaravelAuthService _authService = LaravelAuthService();
 
   DriverProfileModel get profile => _profile;
 
@@ -45,29 +50,38 @@ class ProfileViewModel extends ChangeNotifier {
   // =========================================================
 
   Future<void> logout({
-    required VoidCallback onSuccess,
-  }) async {
-    if (_isLoggingOut) {
-      return;
-    }
+  required VoidCallback onSuccess,
+}) async {
+  if (_isLoggingOut) return;
 
-    _isLoggingOut = true;
-    notifyListeners();
+  _isLoggingOut = true;
+  notifyListeners();
+
+  try {
+    debugPrint('CAPTAIN LOGOUT STARTED');
 
     try {
-      // TODO:
-      // await authRepository.signOut();
+      await _authService.logout();
 
-      await Future.delayed(
-        const Duration(
-          milliseconds: 350,
-        ),
-      );
+      debugPrint('CAPTAIN SERVER LOGOUT SUCCESS');
+    } catch (error) {
+      debugPrint('CAPTAIN SERVER LOGOUT FAILED: $error');
 
-      onSuccess();
-    } finally {
-      _isLoggingOut = false;
-      notifyListeners();
+      // Local logout still proceeds.
+      // The server token may remain valid if revocation failed.
     }
+
+    await TokenStorage.deleteToken();
+
+    debugPrint('CAPTAIN LOCAL TOKEN DELETED');
+
+    onSuccess();
+  } catch (error) {
+    debugPrint('CAPTAIN LOCAL LOGOUT FAILED: $error');
+    rethrow;
+  } finally {
+    _isLoggingOut = false;
+    notifyListeners();
   }
+}
 }

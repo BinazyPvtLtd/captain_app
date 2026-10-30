@@ -1,8 +1,21 @@
+import 'package:dio/dio.dart';
+import 'package:driver_app/features/onboarding/vehicle/services/captain_vehicle_service.dart';
 import 'package:flutter/material.dart';
 
-import '../model/vehicle_type_model.dart';
 
 class VehicleDetailsViewModel extends ChangeNotifier {
+
+   final int vehicleTypeId;
+  final String vehicleTypeName;
+
+  VehicleDetailsViewModel({
+    required this.vehicleTypeId,
+    required this.vehicleTypeName,
+  });
+
+
+  final CaptainVehicleService _vehicleService =
+    CaptainVehicleService();
   // =========================================================
   // CONTROLLERS
   // =========================================================
@@ -20,34 +33,34 @@ class VehicleDetailsViewModel extends ChangeNotifier {
   // VEHICLE TYPES
   // =========================================================
 
-  static const List<VehicleTypeModel> vehicleTypes = [
-    VehicleTypeModel(
-      id: 'two_wheeler',
-      title: '2 Wheeler',
-      icon: Icons.two_wheeler_rounded,
-    ),
-    VehicleTypeModel(
-      id: 'three_wheeler',
-      title: '3 Wheeler',
-      icon: Icons.electric_rickshaw_rounded,
-    ),
-    VehicleTypeModel(
-      id: 'mini_truck',
-      title: 'Mini Truck',
-      icon: Icons.local_shipping_outlined,
-    ),
-    VehicleTypeModel(
-      id: 'pickup_truck',
-      title: 'Pickup Truck',
-      icon: Icons.fire_truck_outlined,
-    ),
-  ];
+  // static const List<VehicleTypeModel> vehicleTypes = [
+  //   VehicleTypeModel(
+  //     id: 'two_wheeler',
+  //     title: '2 Wheeler',
+  //     icon: Icons.two_wheeler_rounded,
+  //   ),
+  //   VehicleTypeModel(
+  //     id: 'three_wheeler',
+  //     title: '3 Wheeler',
+  //     icon: Icons.electric_rickshaw_rounded,
+  //   ),
+  //   VehicleTypeModel(
+  //     id: 'mini_truck',
+  //     title: 'Mini Truck',
+  //     icon: Icons.local_shipping_outlined,
+  //   ),
+  //   VehicleTypeModel(
+  //     id: 'pickup_truck',
+  //     title: 'Pickup Truck',
+  //     icon: Icons.fire_truck_outlined,
+  //   ),
+  // ];
 
-  VehicleTypeModel? _selectedVehicleType =
-      vehicleTypes.first;
+  // VehicleTypeModel? _selectedVehicleType =
+  //     vehicleTypes.first;
 
-  VehicleTypeModel? get selectedVehicleType =>
-      _selectedVehicleType;
+  // VehicleTypeModel? get selectedVehicleType =>
+  //     _selectedVehicleType;
 
   // =========================================================
   // BRAND
@@ -96,13 +109,13 @@ class VehicleDetailsViewModel extends ChangeNotifier {
   // SELECT VEHICLE TYPE
   // =========================================================
 
-  void selectVehicleType(
-    VehicleTypeModel vehicle,
-  ) {
-    _selectedVehicleType = vehicle;
+  // void selectVehicleType(
+  //   VehicleTypeModel vehicle,
+  // ) {
+  //   _selectedVehicleType = vehicle;
 
-    notifyListeners();
-  }
+  //   notifyListeners();
+  // }
 
   // =========================================================
   // BRAND
@@ -143,14 +156,7 @@ class VehicleDetailsViewModel extends ChangeNotifier {
     final String vehicleColor =
         vehicleColorController.text.trim();
 
-    if (_selectedVehicleType == null) {
-      _showMessage(
-        context,
-        'Please select your vehicle type.',
-      );
-
-      return false;
-    }
+   
 
     if (vehicleNumber.isEmpty) {
       _showMessage(
@@ -179,14 +185,14 @@ class VehicleDetailsViewModel extends ChangeNotifier {
       return false;
     }
 
-    if (vehicleColor.isEmpty) {
-      _showMessage(
-        context,
-        'Please enter your vehicle color.',
-      );
+    // if (vehicleColor.isEmpty) {
+    //   _showMessage(
+    //     context,
+    //     'Please enter your vehicle color.',
+    //   );
 
-      return false;
-    }
+    //   return false;
+    // }
 
     return true;
   }
@@ -196,43 +202,70 @@ class VehicleDetailsViewModel extends ChangeNotifier {
   // =========================================================
 
   Future<void> continueVehicle(
-    BuildContext context, {
-    required VoidCallback onSuccess,
-  }) async {
-    FocusScope.of(context).unfocus();
+  BuildContext context, {
+  required Future<void> Function() onSuccess,
+}) async {
+  if (_isLoading) return;
 
-    if (!validate(context)) {
-      return;
-    }
+  FocusScope.of(context).unfocus();
 
-    _setLoading(true);
+  if (!validate(context)) {
+    return;
+  }
 
-    try {
-      // TODO:
-      // Save vehicle data via repository/API.
+  _setLoading(true);
 
-      await Future.delayed(
-        const Duration(
-          milliseconds: 500,
-        ),
-      );
+  try {
+    final registrationNumber =
+        vehicleNumberController.text.trim().toUpperCase();
 
-      _setLoading(false);
+    final response = await _vehicleService.createVehicle(
+      vehicleTypeId: vehicleTypeId,
+      registrationNumber: registrationNumber,
+      make: _selectedBrand!,
+      model: _selectedModel!,
+    );
 
-      onSuccess();
-    } catch (_) {
-      _setLoading(false);
+    if (!context.mounted) return;
 
-      if (!context.mounted) {
-        return;
-      }
+    if (response['success'] == true) {
+      debugPrint('Captain vehicle created successfully');
 
+      await onSuccess();
+    } else {
       _showMessage(
         context,
-        'Unable to save vehicle details.',
+        response['message']?.toString() ??
+            'Unable to create vehicle',
       );
     }
+  } on DioException catch (error) {
+    if (!context.mounted) return;
+
+    final data = error.response?.data;
+
+    String message = 'Unable to create vehicle';
+
+    if (data is Map && data['message'] != null) {
+      message = data['message'].toString();
+    }
+
+    debugPrint('CREATE VEHICLE ERROR: $message');
+
+    _showMessage(context, message);
+  } catch (error) {
+    debugPrint('CREATE VEHICLE ERROR: $error');
+
+    if (!context.mounted) return;
+
+    _showMessage(
+      context,
+      'Something went wrong. Please try again.',
+    );
+  } finally {
+    _setLoading(false);
   }
+}
 
   // =========================================================
   // LOADING

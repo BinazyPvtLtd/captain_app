@@ -1,16 +1,36 @@
+import 'dart:convert';
+
+import 'package:driver_app/features/onboarding/vehicle/services/captain_documents_service.dart';
+import 'package:driver_app/features/onboarding/vehicle/services/document_storage_service.dart';
 import 'package:flutter/material.dart';
 
 import '../model/vehicle_document_model.dart';
+import 'package:file_picker/file_picker.dart';
 
 class VehicleDocumentsViewModel
     extends ChangeNotifier {
+
+
+      final CaptainDocumentsService _documentsService =
+    CaptainDocumentsService();
+
+    final DocumentStorageService _storageService =
+    DocumentStorageService();
+
+bool _isLoadingDocuments = false;
+
+bool get isLoadingDocuments => _isLoadingDocuments;
+
+String? _documentsError;
+
+String? get documentsError => _documentsError;
   // =========================================================
   // DOCUMENTS
   // =========================================================
 
   final List<VehicleDocumentModel> _documents = [
     VehicleDocumentModel(
-      id: 'registration_certificate',
+      id: 'vehicle_rc',
       title: 'Registration Certificate',
       icon: Icons.description_outlined,
     ),
@@ -35,6 +55,41 @@ class VehicleDocumentsViewModel
       icon: Icons.verified_outlined,
     ),
   ];
+
+  // =========================================================
+// DRIVER DOCUMENTS
+// =========================================================
+
+final List<VehicleDocumentModel> _driverDocuments = [
+  VehicleDocumentModel(
+  id: 'government_id',
+  title: 'Aadhaar Card',
+  icon: Icons.badge_outlined,
+),
+  VehicleDocumentModel(
+  id: 'driving_licence',
+  title: 'Driving Licence',
+  icon: Icons.credit_card_outlined,
+),
+  VehicleDocumentModel(
+  id: 'profile_photo',
+  title: 'Driver Profile Photo',
+  icon: Icons.person_outline,
+),
+];
+
+List<VehicleDocumentModel> get driverDocuments =>
+    List.unmodifiable(_driverDocuments);
+
+bool get areAllDocumentsUploaded {
+  final allDocuments = [
+    ...documents,
+    ...driverDocuments,
+  ];
+
+  return allDocuments.isNotEmpty &&
+      allDocuments.every((document) => document.isUploaded);
+}
 
   List<VehicleDocumentModel> get documents =>
       List.unmodifiable(_documents);
@@ -61,134 +116,164 @@ class VehicleDocumentsViewModel
   // =========================================================
 
   Future<void> uploadDocument(
-    BuildContext context,
-    VehicleDocumentModel document,
-  ) async {
-    if (_uploadingDocumentId != null) {
+  BuildContext context,
+  VehicleDocumentModel document,
+) async {
+  if (_uploadingDocumentId != null) return;
+
+  _uploadingDocumentId = document.id;
+  notifyListeners();
+
+  try {
+    // STEP 1: Select document
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: [
+        'jpg',
+        'jpeg',
+        'png',
+        'pdf',
+      ],
+      allowMultiple: false,
+    );
+
+    if (result == null || result.files.isEmpty) {
       return;
     }
 
-    _uploadingDocumentId =
-        document.id;
+    final file = result.files.first;
+
+    if (file.path == null || file.path!.isEmpty) {
+      throw Exception('Unable to access selected file.');
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      throw Exception('File must be smaller than 10 MB.');
+    }
+
+    // STEP 2: Upload file to S3
+    final uploadedFileUrl = await _storageService.uploadFile(
+      filePath: file.path!,
+      documentType: document.id,
+    );
+
+    // STEP 3: Save S3 URL/key in Laravel backend
+    final response = await _documentsService.uploadDocument(
+      documentType: document.id,
+      fileUrl: uploadedFileUrl,
+    );
+
+    if (response is! Map || response['success'] != true) {
+      throw Exception(
+        response is Map
+            ? response['message']?.toString() ??
+                'Document save failed.'
+            : 'Document save failed.',
+      );
+    }
+
+    // STEP 4: Mark as uploaded only after backend success
+    document.fileName = file.name;
+    document.fileUrl = uploadedFileUrl;
+    document.filePath = null;
+    document.status = VehicleDocumentStatus.uploaded;
 
     notifyListeners();
 
-    try {
-      // =====================================================
-      // TODO:
-      //
-      // Actual implementation:
-      // 1. Open file/image picker
-      // 2. Validate selected file
-      // 3. Upload through repository/API
-      // 4. Save returned URL / file info
-      // =====================================================
-
-      await Future.delayed(
-        const Duration(
-          milliseconds: 600,
-        ),
-      );
-
-      document.status =
-          VehicleDocumentStatus.uploaded;
-
-      document.fileName =
-          '${document.id}.jpg';
-    } catch (_) {
-      if (!context.mounted) {
-        return;
-      }
-
+    if (context.mounted) {
       _showMessage(
         context,
-        'Unable to upload document.',
+        '${document.title} uploaded successfully.',
       );
-    } finally {
-      _uploadingDocumentId = null;
-
-      notifyListeners();
     }
-  }
+  } catch (error) {
+    debugPrint(
+      'DOCUMENT UPLOAD ERROR (${document.id}): $error',
+    );
 
+    if (context.mounted) {
+      _showMessage(
+        context,
+        'Unable to upload ${document.title}. Please try again.',
+      );
+    }
+  } finally {
+    _uploadingDocumentId = null;
+    notifyListeners();
+  }
+}
   // =========================================================
   // REMOVE / REPLACE
   // =========================================================
 
-  void removeDocument(
-    VehicleDocumentModel document,
-  ) {
-    document.status =
-        VehicleDocumentStatus.pending;
+  void removeDocument(VehicleDocumentModel document) {
+  document.status = VehicleDocumentStatus.pending;
+  document.fileName = null;
+  document.filePath = null;
+  document.fileUrl = null;
 
-    document.fileName = null;
-
-    notifyListeners();
-  }
+  notifyListeners();
+}
 
   // =========================================================
   // VALIDATION
   // =========================================================
 
   bool get allRequiredDocumentsUploaded {
-    return _documents
-        .where(
-          (document) =>
-              document.isRequired,
-        )
-        .every(
-          (document) =>
-              document.isUploaded,
-        );
-  }
+  final allDocuments = [
+    ..._documents,
+    ..._driverDocuments,
+  ];
+
+  return allDocuments
+      .where((document) => document.isRequired)
+      .every((document) => document.isUploaded);
+}
 
   // =========================================================
   // SUBMIT VEHICLE
   // =========================================================
 
   Future<void> submitVehicle(
-    BuildContext context, {
-    required VoidCallback onSuccess,
-  }) async {
-    if (!allRequiredDocumentsUploaded) {
-      _showMessage(
-        context,
-        'Please upload all required vehicle documents.',
-      );
-
-      return;
-    }
-
-    _setSubmitting(true);
-
-    try {
-      // =====================================================
-      // TODO:
-      // Submit vehicle documents through repository/API.
-      // =====================================================
-
-      await Future.delayed(
-        const Duration(
-          milliseconds: 600,
-        ),
-      );
-
-      _setSubmitting(false);
-
-      onSuccess();
-    } catch (_) {
-      _setSubmitting(false);
-
-      if (!context.mounted) {
-        return;
-      }
-
-      _showMessage(
-        context,
-        'Unable to submit vehicle documents.',
-      );
-    }
+  BuildContext context, {
+  required VoidCallback onSuccess,
+}) async {
+  if (!areAllDocumentsUploaded) {
+    _showMessage(
+      context,
+      'Please upload all required vehicle and driver documents.',
+    );
+    return;
   }
+
+  _setSubmitting(true);
+
+  try {
+    await fetchCaptainDocuments();
+
+    if (_documentsError != null) {
+      throw Exception(_documentsError);
+    }
+
+    if (!areAllDocumentsUploaded) {
+      throw Exception('Some documents are missing.');
+    }
+
+    if (!context.mounted) return;
+
+    onSuccess();
+  } catch (error) {
+    if (context.mounted) {
+      _showMessage(
+        context,
+        'Unable to verify documents. Please try again.',
+      );
+    }
+  } finally {
+    _setSubmitting(false);
+  }
+}
+
 
   // =========================================================
   // LOADING
@@ -220,4 +305,142 @@ class VehicleDocumentsViewModel
         ),
       );
   }
+
+  Future<void> fetchCaptainDocuments() async {
+  if (_isLoadingDocuments) return;
+
+  _isLoadingDocuments = true;
+  _documentsError = null;
+  notifyListeners();
+
+  try {
+    final response = await _documentsService.getDocuments();
+
+    debugPrint('========== GET CAPTAIN DOCUMENTS API ==========');
+
+const encoder = JsonEncoder.withIndent('  ');
+
+debugPrint(
+  encoder.convert(response),
+  wrapWidth: 1024,
+);
+
+debugPrint('===============================================');
+
+    debugPrint('GET CAPTAIN DOCUMENTS: $response');
+
+    if (response is! Map || response['success'] != true) {
+      throw Exception('Unable to fetch captain documents.');
+    }
+
+    final data = response['data'];
+
+    if (data is! List) {
+      throw Exception('Invalid documents response.');
+    }
+
+    final allDocuments = [
+      ..._documents,
+      ..._driverDocuments,
+    ];
+
+    for (final item in data) {
+      if (item is! Map) continue;
+
+      final documentType =
+          item['document_type']?.toString();
+
+      final verificationStatus =
+          item['verification_status']?.toString();
+
+      final isExpired = item['is_expired'] == true;
+
+      final isCleared = item['is_cleared'] == true;
+
+      if (documentType == null) continue;
+
+      for (final document in allDocuments) {
+        if (document.id != documentType) continue;
+
+        // A document has been submitted if its status
+        // is no longer "not_uploaded".
+        final isSubmitted =
+            verificationStatus != null &&
+            verificationStatus != 'not_uploaded';
+
+        // "isUploaded" means submitted to backend,
+        // NOT approved by admin.
+        document.status = isSubmitted
+            ? VehicleDocumentStatus.uploaded
+            : VehicleDocumentStatus.pending;
+
+        // GET response currently does not contain file_url.
+        final fileUrl = item['file_url']?.toString();
+
+        document.fileUrl =
+            fileUrl != null && fileUrl.isNotEmpty
+                ? fileUrl
+                : null;
+
+        debugPrint(
+          'Document: $documentType | '
+          'Status: $verificationStatus | '
+          'Expired: $isExpired | '
+          'Cleared: $isCleared',
+        );
+      }
+    }
+  } catch (error) {
+    _documentsError = error.toString();
+
+    debugPrint('GET DOCUMENTS ERROR: $error');
+  } finally {
+    _isLoadingDocuments = false;
+    notifyListeners();
+  }
+}
+
+Future<bool> saveCaptainDocument({
+  required VehicleDocumentModel document,
+  required String fileUrl,
+}) async {
+  if (_uploadingDocumentId != null) return false;
+
+  _uploadingDocumentId = document.id;
+  notifyListeners();
+
+  try {
+    final response = await _documentsService.uploadDocument(
+  documentType: document.id,
+  fileUrl: fileUrl,
+);
+
+debugPrint('POST CAPTAIN DOCUMENT: $response');
+
+    debugPrint(
+      'POST DOCUMENT RESPONSE (${document.id}): $response',
+    );
+
+    if (response is Map && response['success'] == false) {
+      throw Exception(
+        response['message'] ?? 'Document save failed.',
+      );
+    }
+
+    document.fileUrl = fileUrl;
+    document.status = VehicleDocumentStatus.uploaded;
+
+    notifyListeners();
+    return true;
+  } catch (error) {
+    debugPrint(
+      'POST DOCUMENT ERROR (${document.id}): $error',
+    );
+
+    return false;
+  } finally {
+    _uploadingDocumentId = null;
+    notifyListeners();
+  }
+}
 }

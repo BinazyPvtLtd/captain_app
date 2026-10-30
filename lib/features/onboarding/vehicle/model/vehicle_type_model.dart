@@ -11,3 +11,4 @@ class VehicleTypeModel {
     required this.icon,
   });
 }
+

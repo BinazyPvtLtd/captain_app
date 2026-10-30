@@ -38,6 +38,11 @@ dependencies:
   firebase_auth: ^6.6.0
   firebase_core: ^4.14.0
   image_picker: ^1.2.2
+  dio: ^5.9.0
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.6
+  file_picker: ^11.0.3
+  
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +70,7 @@ flutter:
   assets:
      - assets/images/icons/
      - assets/images/logo/
+     - assets/images/logo/splash/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

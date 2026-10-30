@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:driver_app/features/auth/services/captain_logout_service.dart';
+import 'package:driver_app/features/auth/view/login_screen.dart';
 import 'package:driver_app/features/onboarding/kyc/view/kyc_intro_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,9 +15,14 @@ import '../view_model/complete_profile_view_model.dart';
 
 class CompleteProfileScreen
     extends StatelessWidget {
+
+
+      
   const CompleteProfileScreen({
     super.key,
   });
+
+  
 
   @override
   Widget build(
@@ -146,8 +153,92 @@ class _CompleteProfileView extends StatelessWidget {
 // HEADER
 // =====================================================================
 
-class _ProfileHeader extends StatelessWidget {
+// =====================================================================
+// HEADER
+// =====================================================================
+
+class _ProfileHeader extends StatefulWidget {
   const _ProfileHeader();
+
+  @override
+  State<_ProfileHeader> createState() => _ProfileHeaderState();
+}
+
+class _ProfileHeaderState extends State<_ProfileHeader> {
+  bool _isLoggingOut = false;
+
+  Future<void> _handleLogout() async {
+    if (_isLoggingOut) return;
+
+    // Ask for confirmation before logout.
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text(
+            'Are you sure you want to logout?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true || !mounted) return;
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    try {
+      debugPrint('========== CAPTAIN LOGOUT START ==========');
+
+      await CaptainLogoutService().logout();
+
+      debugPrint('CAPTAIN SESSION CLEARED');
+
+      if (!mounted) return;
+
+      // Remove all previous screens from navigation stack.
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        ),
+        (route) => false,
+      );
+    } catch (error) {
+      debugPrint(
+        'CAPTAIN LOGOUT ERROR: ${error.runtimeType}',
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logout failed. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoggingOut = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +246,7 @@ class _ProfileHeader extends StatelessWidget {
       height: 52,
       child: Row(
         children: [
+          // LEFT: BACK BUTTON
           SizedBox(
             width: 56,
             child: IconButton(
@@ -169,13 +261,13 @@ class _ProfileHeader extends StatelessWidget {
             ),
           ),
 
+          // CENTER: STEP INDICATOR
           Expanded(
             child: Text(
               'STEP 1 OF 4',
               textAlign: TextAlign.center,
               maxLines: 1,
-              style:
-                  AppTextStyles.labelMedium.copyWith(
+              style: AppTextStyles.labelMedium.copyWith(
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 1.4,
@@ -183,8 +275,27 @@ class _ProfileHeader extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(
+          // RIGHT: LOGOUT BUTTON
+          SizedBox(
             width: 56,
+            child: IconButton(
+              tooltip: 'Logout',
+              onPressed:
+                  _isLoggingOut ? null : _handleLogout,
+              icon: _isLoggingOut
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.logout_rounded,
+                      size: AppSpacing.iconMD,
+                      color: Colors.red,
+                    ),
+            ),
           ),
         ],
       ),

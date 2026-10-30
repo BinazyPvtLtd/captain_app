@@ -14,6 +14,12 @@ class VehicleDocumentModel {
   VehicleDocumentStatus status;
   String? fileName;
 
+  // Selected local file
+  String? filePath;
+
+  // Backend se returned document URL
+  String? fileUrl;
+
   VehicleDocumentModel({
     required this.id,
     required this.title,
@@ -21,8 +27,13 @@ class VehicleDocumentModel {
     this.isRequired = true,
     this.status = VehicleDocumentStatus.pending,
     this.fileName,
+    this.filePath,
+    this.fileUrl,
   });
 
   bool get isUploaded =>
       status == VehicleDocumentStatus.uploaded;
+
+  bool get isSelected =>
+      filePath != null && filePath!.isNotEmpty;
 }

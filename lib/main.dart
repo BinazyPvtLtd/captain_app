@@ -1,5 +1,5 @@
 import 'package:driver_app/features/auth/view_model/login_view_model.dart';
-import 'package:driver_app/features/splash/view/splash_view_model.dart';
+import 'package:driver_app/features/splash/view/splash_screen.dart';
 import 'package:driver_app/features/splash/view_model/splash_view_model.dart';
 import 'package:driver_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
