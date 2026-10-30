@@ -110,7 +110,7 @@ Text(
 AppSpacing.gapXS,
 
 Text(
-  'Upload your Aadhaar card, driving licence and profile photo.',
+  'Upload your Aadhaar card, driving licence, PAN card and profile photo.',
   style: AppTextStyles.bodyMediumSecondary.copyWith(
     height: 1.45,
   ),

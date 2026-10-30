@@ -24,6 +24,13 @@ bool get isLoadingDocuments => _isLoadingDocuments;
 String? _documentsError;
 
 String? get documentsError => _documentsError;
+
+// static const Set<String> supportedDocumentTypes = {
+//   'government_id',
+//   'driving_licence',
+//   'pan',
+//   'profile_photo',
+// };
   // =========================================================
   // DOCUMENTS
   // =========================================================
@@ -71,11 +78,18 @@ final List<VehicleDocumentModel> _driverDocuments = [
   title: 'Driving Licence',
   icon: Icons.credit_card_outlined,
 ),
+VehicleDocumentModel(
+    id: 'pan',
+    title: 'PAN Card',
+    icon: Icons.credit_card_rounded,
+  ),
+  
   VehicleDocumentModel(
   id: 'profile_photo',
   title: 'Driver Profile Photo',
   icon: Icons.person_outline,
 ),
+
 ];
 
 List<VehicleDocumentModel> get driverDocuments =>
@@ -115,17 +129,31 @@ bool get areAllDocumentsUploaded {
   // UPLOAD DOCUMENT
   // =========================================================
 
-  Future<void> uploadDocument(
+Future<void> uploadDocument(
   BuildContext context,
   VehicleDocumentModel document,
 ) async {
+//   if (!supportedDocumentTypes.contains(document.id)) {
+//   debugPrint(
+//     'UPLOAD BLOCKED: Unsupported document type ${document.id}',
+//   );
+
+//   if (context.mounted) {
+//     _showMessage(
+//       context,
+//       '${document.title} upload API is not available yet.',
+//     );
+//   }
+
+//   return;
+// }
   if (_uploadingDocumentId != null) return;
 
   _uploadingDocumentId = document.id;
   notifyListeners();
 
   try {
-    // STEP 1: Select document
+    // STEP 1: Select file
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: [
@@ -144,37 +172,39 @@ bool get areAllDocumentsUploaded {
     final file = result.files.first;
 
     if (file.path == null || file.path!.isEmpty) {
-      throw Exception('Unable to access selected file.');
+      throw Exception(
+        'Unable to access selected file.',
+      );
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      throw Exception('File must be smaller than 10 MB.');
+      throw Exception(
+        'Please select a file smaller than 10 MB.',
+      );
     }
 
-    // STEP 2: Upload file to S3
-    final uploadedFileUrl = await _storageService.uploadFile(
-      filePath: file.path!,
-      documentType: document.id,
-    );
-
-    // STEP 3: Save S3 URL/key in Laravel backend
+    // STEP 2: Multipart POST API
     final response = await _documentsService.uploadDocument(
       documentType: document.id,
-      fileUrl: uploadedFileUrl,
+      filePath: file.path!,
+      fileName: file.name,
+    );
+
+    debugPrint(
+      'UPLOAD RESPONSE (${document.id}): $response',
     );
 
     if (response is! Map || response['success'] != true) {
       throw Exception(
         response is Map
             ? response['message']?.toString() ??
-                'Document save failed.'
-            : 'Document save failed.',
+                'Document upload failed.'
+            : 'Document upload failed.',
       );
     }
 
-    // STEP 4: Mark as uploaded only after backend success
+    // STEP 3: Update UI after backend success
     document.fileName = file.name;
-    document.fileUrl = uploadedFileUrl;
     document.filePath = null;
     document.status = VehicleDocumentStatus.uploaded;
 
@@ -186,15 +216,18 @@ bool get areAllDocumentsUploaded {
         '${document.title} uploaded successfully.',
       );
     }
-  } catch (error) {
+
+    // STEP 4: Refresh document statuses from backend
+    await fetchCaptainDocuments();
+  } catch (e) {
     debugPrint(
-      'DOCUMENT UPLOAD ERROR (${document.id}): $error',
+      'DOCUMENT UPLOAD ERROR (${document.id}): $e',
     );
 
     if (context.mounted) {
       _showMessage(
         context,
-        'Unable to upload ${document.title}. Please try again.',
+        'Unable to upload ${document.title}.',
       );
     }
   } finally {
@@ -202,7 +235,8 @@ bool get areAllDocumentsUploaded {
     notifyListeners();
   }
 }
-  // =========================================================
+
+   // =========================================================
   // REMOVE / REPLACE
   // =========================================================
 
@@ -316,27 +350,34 @@ bool get areAllDocumentsUploaded {
   try {
     final response = await _documentsService.getDocuments();
 
-    debugPrint('========== GET CAPTAIN DOCUMENTS API ==========');
+    // Print complete GET API response
+    debugPrint(
+      '========== GET CAPTAIN DOCUMENTS API ==========',
+    );
 
-const encoder = JsonEncoder.withIndent('  ');
+    const encoder = JsonEncoder.withIndent('  ');
 
-debugPrint(
-  encoder.convert(response),
-  wrapWidth: 1024,
-);
+    debugPrint(
+      encoder.convert(response),
+      wrapWidth: 1024,
+    );
 
-debugPrint('===============================================');
-
-    debugPrint('GET CAPTAIN DOCUMENTS: $response');
+    debugPrint(
+      '===============================================',
+    );
 
     if (response is! Map || response['success'] != true) {
-      throw Exception('Unable to fetch captain documents.');
+      throw Exception(
+        'Unable to fetch captain documents.',
+      );
     }
 
     final data = response['data'];
 
     if (data is! List) {
-      throw Exception('Invalid documents response.');
+      throw Exception(
+        'Invalid documents response.',
+      );
     }
 
     final allDocuments = [
@@ -353,94 +394,96 @@ debugPrint('===============================================');
       final verificationStatus =
           item['verification_status']?.toString();
 
-      final isExpired = item['is_expired'] == true;
-
-      final isCleared = item['is_cleared'] == true;
-
       if (documentType == null) continue;
 
       for (final document in allDocuments) {
         if (document.id != documentType) continue;
 
-        // A document has been submitted if its status
-        // is no longer "not_uploaded".
-        final isSubmitted =
-            verificationStatus != null &&
-            verificationStatus != 'not_uploaded';
+        final isSubmitted = {
+  'pending',
+  'approved',
+  'verified',
+}.contains(verificationStatus);
 
-        // "isUploaded" means submitted to backend,
-        // NOT approved by admin.
         document.status = isSubmitted
             ? VehicleDocumentStatus.uploaded
             : VehicleDocumentStatus.pending;
 
-        // GET response currently does not contain file_url.
+        // Update filename only if backend returns it.
+        final fileName = item['file_name']?.toString();
+
+        if (fileName != null && fileName.isNotEmpty) {
+          document.fileName = fileName;
+        }
+
+        // Update file URL only if backend returns it.
         final fileUrl = item['file_url']?.toString();
 
-        document.fileUrl =
-            fileUrl != null && fileUrl.isNotEmpty
-                ? fileUrl
-                : null;
+        if (fileUrl != null && fileUrl.isNotEmpty) {
+          document.fileUrl = fileUrl;
+        }
 
         debugPrint(
           'Document: $documentType | '
-          'Status: $verificationStatus | '
-          'Expired: $isExpired | '
-          'Cleared: $isCleared',
+          'Status: $verificationStatus',
         );
+
+        break;
       }
     }
   } catch (error) {
     _documentsError = error.toString();
 
-    debugPrint('GET DOCUMENTS ERROR: $error');
+    debugPrint(
+      'GET CAPTAIN DOCUMENTS ERROR: $error',
+    );
   } finally {
     _isLoadingDocuments = false;
     notifyListeners();
   }
 }
 
-Future<bool> saveCaptainDocument({
-  required VehicleDocumentModel document,
-  required String fileUrl,
-}) async {
-  if (_uploadingDocumentId != null) return false;
+// Future<bool> saveCaptainDocument({
+//   required VehicleDocumentModel document,
+//   required String fileUrl,
+// }) async {
+//   if (_uploadingDocumentId != null) return false;
 
-  _uploadingDocumentId = document.id;
-  notifyListeners();
+//   _uploadingDocumentId = document.id;
+//   notifyListeners();
 
-  try {
-    final response = await _documentsService.uploadDocument(
-  documentType: document.id,
-  fileUrl: fileUrl,
-);
+//   try {
+//     final response = await _documentsService.uploadDocument(
+//   documentType: document.id,
+//   fileUrl: fileUrl,
+// );
 
-debugPrint('POST CAPTAIN DOCUMENT: $response');
+// debugPrint('POST CAPTAIN DOCUMENT: $response');
 
-    debugPrint(
-      'POST DOCUMENT RESPONSE (${document.id}): $response',
-    );
+//     debugPrint(
+//       'POST DOCUMENT RESPONSE (${document.id}): $response',
+//     );
 
-    if (response is Map && response['success'] == false) {
-      throw Exception(
-        response['message'] ?? 'Document save failed.',
-      );
-    }
+//     if (response is Map && response['success'] == false) {
+//       throw Exception(
+//         response['message'] ?? 'Document save failed.',
+//       );
+//     }
 
-    document.fileUrl = fileUrl;
-    document.status = VehicleDocumentStatus.uploaded;
+//     document.fileUrl = fileUrl;
+//     document.status = VehicleDocumentStatus.uploaded;
 
-    notifyListeners();
-    return true;
-  } catch (error) {
-    debugPrint(
-      'POST DOCUMENT ERROR (${document.id}): $error',
-    );
+//     notifyListeners();
+//     return true;
+//   } catch (error) {
+//     debugPrint(
+//       'POST DOCUMENT ERROR (${document.id}): $error',
+//     );
 
-    return false;
-  } finally {
-    _uploadingDocumentId = null;
-    notifyListeners();
-  }
-}
+//     return false;
+//   } finally {
+//     _uploadingDocumentId = null;
+//     notifyListeners();
+//   }
+// }
 }
